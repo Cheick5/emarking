@@ -34,68 +34,84 @@ function emarking_regrade($emarking, $draft) {
     $rubriclevel = required_param('level', PARAM_INT);
     // Page number.
     $motive = required_param('motive', PARAM_INT);
-    // Comment text.
-    $comment = required_param('comment', PARAM_RAW_TRIMMED);
-    // Verify that dates are ok.
-    if (! emarking_is_regrade_requests_allowed($emarking)) {
-        emarking_json_error('Regrade requests are not allowed for this activity.');
+    if($motive == 0){
+        //Send the output.
+        $output = array(
+            'error' => '',
+            'regradeid' => 0,
+            'comment' => "",
+            'criterionid' => 0,
+            'motive' => "",
+            'timemodified' => time()
+        );
     }
-    // Get the rubric info from the level.
-    if (! $rubricinfo = emarking_get_rubricinfo_by_level($rubriclevel)) {
-        emarking_json_error("Invalid rubric info");
-    }
-    $emarkingcomment = emarking_get_comment_draft_by_levelid($draft, $rubriclevel);
-    // Check if there was already a regrade request.
-    $newrecord = false;
-    if (! $emarkingregrade = $DB->get_record('emarking_regrade',
+    else {
+        // Comment text.
+        $comment = required_param('comment', PARAM_RAW_TRIMMED);
+        // Verify that dates are ok.
+        if (! emarking_is_regrade_requests_allowed($emarking)) {
+            emarking_json_error('Regrade requests are not allowed for this activity.');
+        }
+        // Get the rubric info from the level.
+        if (! $rubricinfo = emarking_get_rubricinfo_by_level($rubriclevel)) {
+            emarking_json_error("Invalid rubric info");
+        }
+        $emarkingcomment = emarking_get_comment_draft_by_levelid($draft, $rubriclevel);
+        // Check if there was already a regrade request.
+        $newrecord = false;
+        if (! $emarkingregrade = $DB->get_record('emarking_regrade',
             array(
                 'draft' => $draft->id,
                 'criterion' => $rubricinfo->criterionid))) {
-        $emarkingregrade = new stdClass();
-        $newrecord = true;
-    }
-    // Make the changes that are for new records and previous.
-    $emarkingregrade->motive = $motive;
-    $emarkingregrade->comment = $comment;
-    $emarkingregrade->accepted = 0;
-    $emarkingregrade->timemodified = time();
-    // If the record is new then add the basic information.
-    if ($newrecord) {
-        $emarkingregrade->student = $USER->id;
-        $emarkingregrade->draft = $draft->id;
-        $emarkingregrade->criterion = $rubricinfo->criterionid;
-        $emarkingregrade->timecreated = time();
-        $emarkingregrade->markercomment = null;
-        if ($emarkingcomment) {
-            $emarkingregrade->levelid = $emarkingcomment->levelid;
-            $emarkingregrade->markerid = $emarkingcomment->markerid;
-            $emarkingregrade->bonus = $emarkingcomment->bonus;
+            $emarkingregrade = new stdClass();
+            $newrecord = true;
         }
+        // Make the changes that are for new records and previous.
+        $emarkingregrade->motive = $motive;
+        $emarkingregrade->comment = $comment;
+        $emarkingregrade->accepted = 0;
+        $emarkingregrade->timemodified = time();
+        // If the record is new then add the basic information.
+        if ($newrecord) {
+            $emarkingregrade->student = $USER->id;
+            $emarkingregrade->draft = $draft->id;
+            $emarkingregrade->criterion = $rubricinfo->criterionid;
+            $emarkingregrade->timecreated = time();
+            $emarkingregrade->markercomment = null;
+            if ($emarkingcomment) {
+                $emarkingregrade->levelid = $emarkingcomment->levelid;
+                $emarkingregrade->markerid = $emarkingcomment->markerid;
+                $emarkingregrade->bonus = $emarkingcomment->bonus;
+            }
+        }
+        // Insert or update the regrade request.
+        if ($newrecord) {
+            $emarkingregrade->id = $DB->insert_record('emarking_regrade', $emarkingregrade);
+        } else {
+            $DB->update_record('emarking_regrade', $emarkingregrade);
+        }
+        // Update the submission.
+        $draft->timemodified = time();
+        $draft->status = EMARKING_STATUS_REGRADING;
+        if($draft->timeregradingstarted == null){
+            $draft->timeregradingstarted = time();
+        }
+        $draft->timeregradingended = time();
+        $DB->update_record('emarking_draft', $draft);
+        // Send the output.
+        $output = array(
+            'error' => '',
+            'regradeid' => $emarkingregrade->id,
+            'comment' => $comment,
+            'criterionid' => $rubricinfo->criterionid,
+            'motive' => $motive,
+            'timemodified' => time()
+        );
     }
-    // Insert or update the regrade request.
-    if ($newrecord) {
-        $emarkingregrade->id = $DB->insert_record('emarking_regrade', $emarkingregrade);
-    } else {
-        $DB->update_record('emarking_regrade', $emarkingregrade);
-    }
-    // Update the submission.
-    $draft->timemodified = time();
-    $draft->status = EMARKING_STATUS_REGRADING;
-    if($draft->timeregradingstarted == null){
-    	$draft->timeregradingstarted = time();
-    }
-    $draft->timeregradingended = time();
-    $DB->update_record('emarking_draft', $draft);
-    // Send the output.
-    $output = array(
-        'error' => '',
-        'regradeid' => $emarkingregrade->id,
-        'comment' => $comment,
-        'criterionid' => $rubricinfo->criterionid,
-        'motive' => $motive,
-        'timemodified' => time());
+
     return $output;
 }
+
 function emarking_add_changelog($emarking, $draft) {
 	global $DB, $USER;
 	// Level id represents the level in the rubric.

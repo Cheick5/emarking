@@ -203,3 +203,8 @@ $settings->add(
 $settings->add(
         new admin_setting_configtext('emarking_mobilephoneregex', get_string('mobilephoneregex', 'mod_emarking'),
                 get_string('mobilephoneregex_help', 'mod_emarking'), '', PARAM_RAW));
+
+// RoleIdStudent
+$settings->add(
+    new admin_setting_configtext('role_id_student', get_string('roleidstudent', 'mod_emarking'),
+        get_string('roleidstudent_help', 'mod_emarking'), '5', PARAM_TEXT));

@@ -1039,8 +1039,10 @@ class mod_emarking_mod_form extends moodleform_mod {
         $enrolcheckboxes = array();
         $enrolavailables = $this->get_available_enrolments();
         foreach ($enrolavailables as $enrolment) {
-            $enrolcheckboxes [] = $mform->createElement('checkbox', $enrolment, null, 
-                    get_string('enrol' . $enrolment, 'mod_emarking'), 'checked');
+            if($enrolment != 'category'){
+                $enrolcheckboxes [] = $mform->createElement('checkbox', $enrolment, null,
+                        get_string('enrol' . $enrolment, 'mod_emarking'), 'checked');
+            }
         }
         if (count($enrolcheckboxes) == 0) {
             return false;

@@ -1138,12 +1138,12 @@ function emarking_sort_submission_pages($submission, $neworder) {
  * @param unknown_type $courseid            
  */
 function emarking_get_students_for_printing($courseid) {
-    global $DB;
+    global $CFG, $DB;
     $query = 'SELECT u.id, u.idnumber, u.firstname, u.lastname, GROUP_CONCAT(e.enrol) as enrol
 				FROM {user_enrolments} ue
 				JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = ?)
 				JOIN {context} c ON (c.contextlevel = 50 AND c.instanceid = e.courseid)
-				JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = 5 AND ra.userid = ue.userid)
+				JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = '. $CFG->role_id_student .' AND ra.userid = ue.userid)
 				JOIN {user} u ON (ue.userid = u.id)
                 GROUP BY u.id
 				ORDER BY lastname ASC';

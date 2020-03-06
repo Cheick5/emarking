@@ -630,11 +630,12 @@ function emarking_get_enroled_students($courseid)
  */
 function emarking_get_enroled_students_sql()
 {
+    global $CFG;
     $query = 'SELECT u.*
 			FROM {user_enrolments} ue
 			JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = ?)
 			JOIN {context} c ON (c.contextlevel = 50 AND c.instanceid = e.courseid)
-			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = 5 AND ra.userid = ue.userid)
+			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = '. $CFG->role_id_student .'  AND ra.userid = ue.userid)
 			JOIN {user} u ON (ue.userid = u.id)
 			GROUP BY u.id';
     
@@ -648,6 +649,7 @@ function emarking_get_enroled_students_sql()
  */
 function emarking_get_count_enroled_students_sql($courseid = 0)
 {
+    global $CFG;
     
     // De pasarse un curso, se filtra por su id
     $sqlcourse = $courseid ? 'e.courseid = ? AND ' : '';
@@ -656,7 +658,7 @@ function emarking_get_count_enroled_students_sql($courseid = 0)
 			FROM {user_enrolments} ue
 			JOIN {enrol} e ON (e.id = ue.enrolid)
 			JOIN {context} c ON ($sqlcourse c.contextlevel = 50 AND c.instanceid = e.courseid)
-			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = 5 AND ra.userid = ue.userid)
+			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = $CFG->role_id_student AND ra.userid = ue.userid)
 			JOIN {course} cc ON (e.courseid = cc.id)
 			GROUP BY cc.id";
     
