@@ -242,7 +242,7 @@ function emarking_get_student_picture($student, $userimgdir) {
  * @param unknown_type $courseid            
  */
 function emarking_get_students_count_for_printing($courseid, $exam = null) {
-    global $DB;
+    global $DB, $CFG;
     $sqlenrolments = "";
     if ($exam != null) {
         $parts = explode(',', $exam->enrolments);
@@ -255,11 +255,12 @@ function emarking_get_students_count_for_printing($courseid, $exam = null) {
             $sqlenrolments = " AND e.enrol IN ($sqlenrolments)";
         }
     }
+
     $query = "SELECT count(u.id) as total
 			FROM {user_enrolments} ue
 			JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = ? $sqlenrolments)
 			JOIN {context} c ON (c.contextlevel = 50 AND c.instanceid = e.courseid)
-			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = 5 AND ra.userid = ue.userid)
+			JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.roleid = $CFG->role_id_student AND ra.userid = ue.userid)
 			JOIN {user} u ON (ue.userid = u.id)
 			GROUP BY e.courseid";
     // Se toman los resultados del query dentro de una variable.

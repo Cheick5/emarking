@@ -31,7 +31,7 @@
  * @param unknown $context
  * @return multitype:stdClass
  */
-function emarking_get_all_pages($emarking, $submission, $draft, $studentanonymous, $context, $winwidth, $winheight) {
+function emarking_get_all_pages($emarking, $submission, $draft, $studentanonymous, $context, $winwidth = 0, $winheight = 0) {
     global $DB, $CFG, $USER;
     $emarkingpages = array();
     // Get criteria to filter pages.
@@ -858,6 +858,10 @@ function emarking_calculate_grades_users($emarking, $userid = 0) {
     // Get the grading manager, then method and finally controller.
     $gradingmanager = get_grading_manager($context, 'mod_emarking', 'attempt');
     $gradingmethod = $gradingmanager->get_active_method();
+    if ($gradingmethod == null) {
+        return;
+    }
+
     $controller = $gradingmanager->get_controller($gradingmethod);
     $range = $controller->get_grade_range();
     $rubricscores = $controller->get_min_max_score();

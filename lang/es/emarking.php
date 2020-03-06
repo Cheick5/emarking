@@ -506,6 +506,7 @@ $string ['enrolments_help'] = 'Solo se incluirán los estudiantes matriculados e
 $string ['enrolmanual'] = 'Matriculaciones manuales';
 $string ['enrolself'] = 'Auto-Matriculaciones';
 $string ['enroldatabase'] = 'Matriculaciones de base de datos externa';
+$string ['enrolcategory'] = 'Matriculaciones por categoría';
 $string ['enrolmeta'] = 'Matriculaciones de metacurso';
 $string ['enrolcohort'] = 'Matriculaciones por cohorte';
 $string ['includestudentsinexam'] = 'Matriculaciones que incluir para impresión personalizada';
@@ -907,3 +908,6 @@ $string['disabled'] = 'Deshabilitado';
 $string['changelog'] = 'Bitácora de cambios';
 $string['changelog_help'] = 'Permite a los estudiantes escribir una bitácora de cambios como actividad a continuación de revisar su retroalimentación.';
 $string['motiverequired'] = 'Debe seleccionar un motivo.';
+
+$string['roleidstudent'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
+$string['roleidstudent_help'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';

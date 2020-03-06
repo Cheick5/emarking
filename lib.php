@@ -1086,7 +1086,7 @@ function emarking_cm_info_view(cm_info $cm)  {
             window.addEventListener('DOMContentLoaded', (event) => {
                 var container = document.querySelector('#module-".$cm->id."');
                 var childNode = container.querySelector('.editing_delete');
-               childNode.style.display = 'none';
+                if (childNode != null) childNode.style.display = 'none';
             }); 
           </script>
         ");
