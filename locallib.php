@@ -1224,7 +1224,7 @@ function emarking_send_notification($exam, $course, $postsubject, $posttext, $po
             if (has_capability('mod/emarking:receivenotification', $context, $user)) {
                 $thismessagehtml .= '<p><a href="' . $CFG->wwwroot . '/mod/emarking/print/exams.php?course=' . $course->id . '">' . get_string('printorders', 'mod_emarking') . ' ' . $course->fullname . '</a></p>';
             }
-        $eventdata = new stdClass();
+        $eventdata = new core\message\message;
         $eventdata->component = 'mod_emarking';
         $eventdata->name = 'notification';
         $eventdata->userfrom = $fromuser;
