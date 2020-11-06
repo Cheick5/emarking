@@ -34,7 +34,7 @@ define('NO_OUTPUT_BUFFERING', true);
 
 require_once (dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once ($CFG->libdir . '/pdflib.php');
-require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi.php');
+require_once ($CFG->dirroot . '/mod/emarking/lib/fpdi/fpdi.php');
 require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php');
 require_once ($CFG->dirroot . "/mod/emarking/lib/openbub/ans_pdf_open.php");
 require_once ($CFG->dirroot . "/mod/emarking/locallib.php");

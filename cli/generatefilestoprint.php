@@ -35,8 +35,8 @@ $CFG->debug = (E_ALL | E_STRICT);   // === DEBUG_DEVELOPER - NOT FOR PRODUCTION 
 $CFG->debugdisplay = 1;             // NOT FOR PRODUCTION SERVERS!
 require_once ($CFG->libdir . '/clilib.php'); // cli only functions
 require_once ($CFG->dirroot . "/lib/pdflib.php");
-require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
-require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
+require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
 require_once ($CFG->dirroot . "/mod/emarking/lib/phpqrcode/phpqrcode.php");
 require_once ($CFG->dirroot . '/mod/emarking/lib.php');
 require_once ($CFG->dirroot . "/mod/emarking/locallib.php");
