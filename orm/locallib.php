@@ -47,7 +47,7 @@ function emarking_create_quiz_pdf($cm, $debug = false, $context = null, $course 
     
     // Inclusión de librerías
     require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php');
-    require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi.php');
+    require_once ($CFG->dirroot . '/mod/emarking/lib/fpdi/fpdi.php');
     require_once ($CFG->libdir . '/pdflib.php');
     require_once ($CFG->dirroot . '/mod/quiz/locallib.php');
     require_once ($CFG->dirroot . '/mod/emarking/print/locallib.php');
@@ -518,7 +518,7 @@ function emarking_add_answer_sheet($pdf, $filedir, $stinfo, $logofilepath, $path
     global $CFG;
     
     require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php');
-    require_once ($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi.php');
+    require_once ($CFG->dirroot . '/mod/emarking/lib/fpdi/fpdi.php');
     
     if ($answers == null)
         return;

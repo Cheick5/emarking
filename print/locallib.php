@@ -537,11 +537,11 @@ function emarking_pdf_count_pages($newfile, $tempdir, $doubleside = true) {
     global $CFG;
     if ($CFG->version > 2015111600) {
         require_once ($CFG->dirroot . "/lib/pdflib.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
     } else {
         require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
     }
-    require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+    require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
     $doc = new FPDI();
     $files = $doc->setSourceFile($newfile);
     $doc->Close();
@@ -563,11 +563,11 @@ function emarking_create_printform($context, $exam, $userrequests, $useraccepts,
     global $CFG;
     if ($CFG->version > 2015111600) {
         require_once ($CFG->dirroot . "/lib/pdflib.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
     } else {
         require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
     }
-    require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+    require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
     $originalsheets = $exam->totalpages + $exam->extrasheets;
     $copies = $exam->totalstudents + $exam->extraexams;
     $totalpages = emarking_exam_total_pages_to_print($exam);
@@ -1499,7 +1499,7 @@ function emarking_send_email_code($code, $user, $course, $examname) {
     $eventdata->fullmessageformat = FORMAT_HTML;
     $eventdata->fullmessagehtml = $thismessagehtml;
     $eventdata->smallmessage = $subject;
-    $eventdata->notification = '0';
+    $eventdata->notification = '1';
     //$eventdata->courseid = $course->id;
     return message_send($eventdata);
 }

@@ -31,11 +31,11 @@ require_once($CFG->dirroot . '/mod/emarking/locallib.php');
 require_once($CFG->dirroot . '/mod/emarking/forms/printexam_form.php');
 if ($CFG->version > 2015111600) {
     require_once($CFG->dirroot . "/lib/pdflib.php");
-    require_once($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+    require_once($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
 } else {
     require_once($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
 }
-require_once($CFG->dirroot . '/mod/assign/feedback/editpdf/fpdi/fpdi.php');
+require_once($CFG->dirroot . '/mod/emarking/lib/fpdi/fpdi.php');
 require_once($CFG->dirroot . '/mod/emarking/print/locallib.php');
 require_once($CFG->dirroot . '/mod/emarking/lib/phpqrcode/phpqrcode.php');
 global $DB, $CFG, $USER;
