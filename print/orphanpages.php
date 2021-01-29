@@ -22,7 +22,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once (dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
-global $USER, $DB, $CFG;
+global $PAGE, $DB, $CFG, $OUTPUT;
 require_once ($CFG->dirroot . "/repository/lib.php");
 require_once ($CFG->dirroot . "/mod/emarking/locallib.php");
 require_once ($CFG->dirroot . "/mod/emarking/print/locallib.php");
@@ -34,9 +34,6 @@ $page = optional_param('page', 0, PARAM_INT);
 $url = new moodle_url('/mod/emarking/print/orphanpages.php', array(
     'id' => $cm->id,
     'page' => $page
-));
-$urlemarking = new moodle_url('/mod/emarking/view.php', array(
-    'id' => $cm->id
 ));
 // Check that user is logged in and is not guest.
 require_login($course->id);
@@ -119,6 +116,7 @@ if ($action === 'rotate') {
 echo $OUTPUT->header();
 echo $OUTPUT->heading($emarking->name);
 if($CFG->emarking_pagelayouttype == EMARKING_PAGES_LAYOUT_STANDARD){
+    $tabname = "orphanpages";
 echo $OUTPUT->tabtree(emarking_tabs($context, $cm, $emarking), $tabname);
 }?>
 <style>
@@ -158,7 +156,7 @@ if ($numorphanpages == 0) {
     }
     $options = array();
     $options[0] = get_string('choose');
-    $totalpages = $exam->totalpages * (1 + $exam->usebackside);
+    $totalpages = ($exam->totalpages + 5) * (1 + $exam->usebackside);
     for($i = 1; $i <= $totalpages; $i++) {
         $options[$i] = $i;
     }

@@ -1901,6 +1901,179 @@ function xmldb_emarking_upgrade($oldversion) {
     	 	// Emarking savepoint reached.
     	upgrade_mod_savepoint(true, 2017052600, 'emarking');
     }
-    
+    if ($oldversion < 2017062100) {
+    	
+    	// Define field timeassignation to be added to emarking_markers.
+    	$table = new xmldb_table('emarking_markers');
+    	$field = new xmldb_field('timeassignation', XMLDB_TYPE_INTEGER, '20', null, null, null, null, 'qualitycontrol');
+    	
+    	// Conditionally launch add field timeassignation.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017062100, 'emarking');
+    }
+    if ($oldversion < 2017070500) {
+    	
+    	// Define field markingfeedback to be added to emarking.
+    	$table = new xmldb_table('emarking');
+    	$field = new xmldb_field('markingfeedback', XMLDB_TYPE_TEXT, null, null, null, null, null, null);
+    	
+    	// Conditionally launch add field predefined.
+    	if (! $dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017070500, 'emarking');
+    }
+    if ($oldversion < 2017071000) {
+    	
+    	// Define table emarking_used_activities to be created.
+    	$table = new xmldb_table('emarking_used_activities');
+    	
+    	// Adding fields to table emarking_used_activities.
+    	$table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+    	$table->add_field('emarkingid', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, null);
+    	$table->add_field('activityid', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, null);
+    	$table->add_field('printrubric', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+    	$table->add_field('printteaching', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+    	$table->add_field('onlinerewrite', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+    	$table->add_field('uploadingtype', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1');
+    	
+    	// Adding keys to table emarking_used_activities.
+    	$table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+    	
+    	// Conditionally launch create table for emarking_used_activities.
+    	if (!$dbman->table_exists($table)) {
+    		$dbman->create_table($table);
+    	}
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017071000, 'emarking');
+    }
+    if ($oldversion < 2017071001) {
+    	
+    	// Define table emarking_rub_used_activities to be created.
+    	$table = new xmldb_table('emarking_rub_used_activities');
+    	
+    	// Adding fields to table emarking_rub_used_activities.
+    	$table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+    	$table->add_field('rubcricid', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, null);
+    	$table->add_field('activityrubricid', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, null);
+    	
+    	// Adding keys to table emarking_rub_used_activities.
+    	$table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+    	
+    	// Conditionally launch create table for emarking_rub_used_activities.
+    	if (!$dbman->table_exists($table)) {
+    		$dbman->create_table($table);
+    	}
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017071001, 'emarking');
+    }
+
+    if ($oldversion < 2017071901) {
+    	 
+    	// Define field timeassignation to be added to emarking_markers.
+    	$table = new xmldb_table('emarking_predefined_comment');
+    	$field = new xmldb_field('favorite', XMLDB_TYPE_INTEGER, '10', null, null, null, null, null);
+    	 
+    	// Conditionally launch add field timeassignation.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	 
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017071901, 'emarking');
+    }
+    if ($oldversion < 2017073100) {
+    	
+    	// Define field sortorder to be added to emarking_rubrics_criteria.
+    	$table = new xmldb_table('emarking_rubrics_criteria');
+    	$field = new xmldb_field('sortorder', XMLDB_TYPE_INTEGER, '20', null, null, null, null, 'description');
+    	
+    	// Conditionally launch add field sortorder.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017073100, 'emarking');
+    }
+    if ($oldversion < 2017110700) {
+    	
+    	// Define table emarking_fondef_marking to be created.
+    	$table = new xmldb_table('emarking_fondef_marking');
+    	
+    	// Adding fields to table emarking_fondef_marking.
+    	$table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+    	$table->add_field('draft', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+    	$table->add_field('marker', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+    	$table->add_field('seconddraft', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+    	$table->add_field('secondmarker', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+    	
+    	// Adding keys to table emarking_fondef_marking.
+    	$table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+    	
+    	// Conditionally launch create table for emarking_fondef_marking.
+    	if (!$dbman->table_exists($table)) {
+    		$dbman->create_table($table);
+    	}
+    	
+    	// Define table emarking_double_marking to be created.
+    	$table = new xmldb_table('emarking_double_marking');
+    	
+    	// Adding fields to table emarking_double_marking.
+    	$table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+    	$table->add_field('emarkingid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+    	$table->add_field('secondemarkingid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+    	
+    	// Adding keys to table emarking_double_marking.
+    	$table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+    	
+    	// Conditionally launch create table for emarking_double_marking.
+    	if (!$dbman->table_exists($table)) {
+    		$dbman->create_table($table);
+    	}
+    	
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017110700, 'emarking');
+    }
+    if ($oldversion < 2017112700) {
+    	
+    	// Define field emarking to be added to emarking_fondef_marking.
+    	$table = new xmldb_table('emarking_fondef_marking');
+    	$field = new xmldb_field('emarking', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0', 'marker');
+    	
+    	// Conditionally launch add field emarking.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	
+    	$table = new xmldb_table('emarking_fondef_marking');
+    	$field = new xmldb_field('secondemarking', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0', 'secondmarker');
+    	
+    	// Conditionally launch add field secondemarking.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	
+    	// Define field stage to be added to emarking_fondef_marking.
+    	$table = new xmldb_table('emarking_fondef_marking');
+    	$field = new xmldb_field('stage', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'secondemarking');
+    	
+    	// Conditionally launch add field stage.
+    	if (!$dbman->field_exists($table, $field)) {
+    		$dbman->add_field($table, $field);
+    	}
+    	
+    	// Emarking savepoint reached.
+    	upgrade_mod_savepoint(true, 2017112700, 'emarking');
+    }
     return true;
 }

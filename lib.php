@@ -103,6 +103,14 @@ define ( 'EMARKING_BUTTON_PEN', 5 );
 define ( 'EMARKING_BUTTON_QUESTION', 6 );
 define ( 'EMARKING_BUTTON_HIGHLIGHT', 7 );
 
+// Reports.
+define ( 'EMARKING_REPORT_FEEDBACK', 1 );
+define ( 'EMARKING_REPORT_GRADES', 2 );
+define ( 'EMARKING_REPORT_MARKING', 3 );
+define ( 'EMARKING_REPORT_RANKING', 4 );
+define ( 'EMARKING_REPORT_OUTCOMES', 5 );
+define ( 'EMARKING_REPORT_JUSTICE', 6 );
+
 // Moodle core API.
 /**
  * Returns the information on whether the module supports a feature
@@ -911,7 +919,6 @@ function emarking_pluginfile($course, $cm, $context, $filearea, array $args, $fo
 	global $DB, $CFG, $USER;
 	require_once ($CFG->dirroot . '/mod/emarking/locallib.php');
 	require_once ($CFG->dirroot . '/mod/emarking/print/locallib.php');
-	require_login ();
 	// send_file defaults.
 	$lifetime = null;
 	$filter = 0;
@@ -923,11 +930,12 @@ function emarking_pluginfile($course, $cm, $context, $filearea, array $args, $fo
 	// end of send_file defaults.
 	$filename = array_pop ( $args );
 	$itemid = array_pop ( $args );
-	if ($filearea != 'instructions') {
+	if ($filearea !== 'instructions') {
+		require_login ();
 		$contextcourse = context_course::instance ( $course->id );
 		$contextcategory = context_coursecat::instance ( $course->category );
 	}
-	if ($filearea == 'instructions') {
+	if ($filearea === 'instructions') {
 		$lifetime = 60 * 60 * 24 * 36500;
 	}
 	// Downloading digitized answers requires uploadexam permission on activity.

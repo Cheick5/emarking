@@ -208,6 +208,7 @@ $string ['examstatusprocessed'] = 'Processed';
 $string ['downloadexam'] = 'Download exam';
 $string ['reprocessexam'] = 'Reprocess exam';
 $string ['comment_help'] = 'Comment for the printing staff.';
+$string ['uploaded'] = 'Uploaded';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (much worse than I deserved)';
 $string ['er-3'] = '-3';
@@ -250,6 +251,7 @@ $string ['secondstagedate_help'] = 'Maximum date for markers to reach agreement'
 $string ['mustseefeedbackbeforejustice'] = 'You must review your exam feedback before you can give your opinion.';
 $string ['reviewpeersfeedback'] = 'Review peers';
 // PREDEFINED COMMENTS.
+$string ['favorite'] = 'Favorite';
 $string ['datahasheaders'] = 'Ignore first row';
 $string ['predefinedcomments'] = 'Predefined comments';
 $string ['predefinedcomments_help'] = 'Paste a column from Excel (with or without a header) to import all the rows as predefined comments.';
@@ -374,6 +376,12 @@ $string ['anonymousfile'] = 'Anonymous file';
 $string ['noorphanpages'] = 'There are no orphan pages';
 $string ['rotatepage'] = 'Rotate page';
 // REPORTS.
+$string ['enableconfigtab'] = 'Tab configuration enabled';
+$string ['enableconfigtab_help'] = 'If enabled, a tab for configuration of the Emarking activity will be shown for the teacher.';
+$string ['enableregrading'] = 'Regrading enabled';
+$string ['enableregrading_help'] = 'Regrading allows students to complain on the grading of one or more criteria. They must fill a form indicating the complain type and a comment.';
+$string ['reportsenabled'] = 'Reports enabled';
+$string ['reportsenabled_help'] = 'Select which reports will be enabled in the reports tab';
 $string ['gradereport'] = 'Grades report';
 $string ['gradereport_help'] = 'This report shows basic statistics and a three graphs. It includes the grades from a particular EMarking activity but other activities from other courses can be added if the parallel courses settings are configured.<br/>
 			<strong>Basic statistics:</strong>Shows the average, quartiles and ranges for the course.<br/>
@@ -397,7 +405,8 @@ $string ['statuspercriterion'] = 'Status per criterion';
 $string ['feedbackreport'] = 'Feedback report';
 $string ['feedback'] = 'Feedback';
 $string ['viewfeedback'] = 'View feedback';
-$string['feedbackwordcloud'] = 'Feedback word cloud';
+$string ['feedbackwordcloud'] = 'Feedback word cloud';
+$string ['markingfeedback'] = 'Marking feedback';
 // EMARKING COST REPORT.
 $string ['period'] = 'Period';
 $string ['subcategoryname'] = 'Subcategory name';
@@ -902,9 +911,27 @@ $string['enabled'] = 'Enabled';
 $string['disabled'] = 'Disabled';
 $string['changelog'] = 'Change log';
 $string['changelog_help'] = 'Allows students to write a change log as a follow up activity after reviewing their feedback.';
+<<<<<<< HEAD
 $string['motiverequired'] = 'You must select a motive.';
 
 $string['roleidstudent'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
 $string['roleidstudent_help'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
 
 $string['uploaded'] = "Uploaded";
+=======
+// ACTIVITIES
+$string['emarking:manageactivities']='Manage activities';
+$string['visible'] = 'Visible';
+$string['activity_instructions'] = 'Instructions';
+$string['activity_instructions_help'] = 'Instructions for students';
+$string['activity_description'] = 'Description';
+$string['activity_description_help'] = 'Short description of the activity';
+$string['activity_title'] = 'Title';
+$string['activity_title_help'] = 'Title of the activity';
+$string['selectoa'] = 'There are no learning objectives selected';
+$string['searchoa'] = 'Search learning objectives';
+$string['oas'] = 'Learning objectives';
+$string['oas_help'] = 'Learning objectives according to the Education Ministry';
+$string['removeallfilters'] = 'Remove all filters';
+$string['gradeitem:exams'] = 'Exams';
+>>>>>>> villalon/master
