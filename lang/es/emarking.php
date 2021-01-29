@@ -911,3 +911,5 @@ $string['motiverequired'] = 'Debe seleccionar un motivo.';
 
 $string['roleidstudent'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
 $string['roleidstudent_help'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
+
+$string['uploaded'] = "Subido";
