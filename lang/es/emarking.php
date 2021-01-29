@@ -916,14 +916,12 @@ $string['enabled'] = 'Habilitado';
 $string['disabled'] = 'Deshabilitado';
 $string['changelog'] = 'Bitácora de cambios';
 $string['changelog_help'] = 'Permite a los estudiantes escribir una bitácora de cambios como actividad a continuación de revisar su retroalimentación.';
-<<<<<<< HEAD
 $string['motiverequired'] = 'Debe seleccionar un motivo.';
 
 $string['roleidstudent'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
 $string['roleidstudent_help'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
 
 $string['uploaded'] = "Subido";
-=======
 // ACTIVITIES
 $string['emarking:manageactivities']='Gestionar actividades';
 $string['visible'] = 'Visible';
@@ -939,4 +937,3 @@ $string['oas'] = 'Objetivos de Aprendizaje';
 $string['oas_help'] = 'Seleccione los OAs a los que aplica la actividad, de acuerdo al curriculum nacional';
 $string['removeallfilters'] = 'Quitar filtros';
 $string['gradeitem:exams'] = 'Prueba';
->>>>>>> villalon/master

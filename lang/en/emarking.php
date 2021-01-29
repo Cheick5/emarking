@@ -911,14 +911,12 @@ $string['enabled'] = 'Enabled';
 $string['disabled'] = 'Disabled';
 $string['changelog'] = 'Change log';
 $string['changelog_help'] = 'Allows students to write a change log as a follow up activity after reviewing their feedback.';
-<<<<<<< HEAD
 $string['motiverequired'] = 'You must select a motive.';
 
 $string['roleidstudent'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
 $string['roleidstudent_help'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
 
 $string['uploaded'] = "Uploaded";
-=======
 // ACTIVITIES
 $string['emarking:manageactivities']='Manage activities';
 $string['visible'] = 'Visible';
@@ -934,4 +932,3 @@ $string['oas'] = 'Learning objectives';
 $string['oas_help'] = 'Learning objectives according to the Education Ministry';
 $string['removeallfilters'] = 'Remove all filters';
 $string['gradeitem:exams'] = 'Exams';
->>>>>>> villalon/master
