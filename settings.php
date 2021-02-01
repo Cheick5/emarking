@@ -182,6 +182,18 @@ $settings->add(
         new admin_setting_configtext('emarking_nodejspath', get_string('nodejspath', 'mod_emarking'),
                 get_string('nodejspath_help', 'mod_emarking'), '', PARAM_URL));
 
+// QR Extractor log path
+/*
+$settings->add(
+        new admin_setting_configtext(
+                'emarking_qrextractorlogpath',
+                get_string('qrextractor_log_path', 'mod_emarking'),
+                get_string('qrextractor_log_path_help', 'mod_emarking'), 
+                "/var/log/moodle/qrextractor.log",
+                PARAM_TEXT
+        )
+);*/
+
 //Select type of layout for emarking
 $choices = array(
         EMARKING_PAGES_LAYOUT_STANDARD => get_string('page_layout_standard', 'mod_emarking'),

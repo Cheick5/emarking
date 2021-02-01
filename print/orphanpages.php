@@ -176,25 +176,45 @@ if ($numorphanpages == 0) {
             continue;
         }
         $actions = array();
+
+        /*
+        #this url doesnt work
         $deleteurl = new moodle_url('/mod/emarking/print/orphanpages.php', array(
             'id' => $cm->id,
             'delete' => $file->get_id()
         ));
+
+        #neither does this one
         $rotateurl = new moodle_url('/mod/emarking/print/orphanpages.php', array(
             'id' => $cm->id,
             'file' => $file->get_id(),
             'rotate' => true
         ));
+        */
+
         if ($usercanupload) {
-            $actions[] = $OUTPUT->action_icon($rotateurl, new pix_icon('i/return', get_string('rotatepage', 'mod_emarking')));
-            $actions[] = $OUTPUT->pix_icon('i/edit', get_string('rotatepage', 'mod_emarking'), '', array(
-                'style' => 'cursor:pointer;',
-                'onclick' => 'showfixform(' . $file->get_id() . ')'
+            #no idea what is this for, it looks like both buttons are for rotating the page, but neither work
+            #$actions[] = $OUTPUT->action_icon($rotateurl, new pix_icon('i/return', get_string('rotatepage', 'mod_emarking')));
+
+            #this thing here apparently activates the fix orphan page thing, it doesnt work
+            #$actions[] = $OUTPUT->pix_icon('i/user', get_string('assign_orphan_to_student', 'mod_emarking'), "", array("id" => "Test"));
+            $assign_orphan_to_student = get_string("assign_orphan_to_student", "mod_emarking");
+            $file_id = $file->get_id();
+            $actions[] = "<i class='icon fa fa-user fa-fw' title='$assign_orphan_to_student' onclick='showfixform($file_id)'></id>";
+            #$actions[] = '<i class="icon fa fa-user fa-fw" title="Assign orphan page to student" onclick="showfixform('.$file->get_id().')"></i>';
+
+            $assignurl = new moodle_url('/mod/emarking/print/assign.php', array(
+                'id' => $cm->id,
+                'file' => $file->get_id()
             ));
         }
         if (isset($file->anonymous)) {
+            #this shows the file but without the top bar so that it doesnt show the student
+            #im not particularly sure what its for but it seems important
             $actions[] = $OUTPUT->action_icon(moodle_url::make_pluginfile_url($context->id, 'mod_emarking', 'orphanpages', $emarking->id, '/', $file->anonymous->get_filename()), new pix_icon('i/show', get_string('anonymousfile', 'mod_emarking')));
         }
+
+        #this seems like the actual piece to select the user
         $actions[] = html_writer::div(html_writer::div(get_string('student', 'grades'), NULL, array(
             'id' => 'error-student-' . $file->get_id()
         )) . html_writer::tag('input', NULL, array(
@@ -349,13 +369,14 @@ function savechanges(fileid) {
 }
 // If the user presses the cancel button.
 function cancelchanges(fileid) {
+    console.log("deactivate");
 	$('#fix-'+fileid).hide();
 	return false;
 }
 // If the user presses the fix icon we show the form to fix a page.
 function showfixform(fileid) {
+    console.log("activate");
 	$('#fix-'+fileid).show();
-	return false;
 }
 </script>
 <?php

@@ -937,3 +937,5 @@ $string['oas'] = 'Objetivos de Aprendizaje';
 $string['oas_help'] = 'Seleccione los OAs a los que aplica la actividad, de acuerdo al curriculum nacional';
 $string['removeallfilters'] = 'Quitar filtros';
 $string['gradeitem:exams'] = 'Prueba';
+
+$string['assign_orphan_to_student'] = 'Asignar pagina huerfana a estudiante';

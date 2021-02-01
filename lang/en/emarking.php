@@ -932,3 +932,5 @@ $string['oas'] = 'Learning objectives';
 $string['oas_help'] = 'Learning objectives according to the Education Ministry';
 $string['removeallfilters'] = 'Remove all filters';
 $string['gradeitem:exams'] = 'Exams';
+
+$string['assign_orphan_to_student'] = 'Assign orphan page to student';
