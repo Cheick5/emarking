@@ -118,27 +118,8 @@ echo $OUTPUT->heading($emarking->name);
 if($CFG->emarking_pagelayouttype == EMARKING_PAGES_LAYOUT_STANDARD){
     $tabname = "orphanpages";
 echo $OUTPUT->tabtree(emarking_tabs($context, $cm, $emarking), $tabname);
-}?>
-<style>
-<!--
-.fixorphanpage {
-	display: none;
-	margin-top: 10px;
-	position: absolute;
-	background-color: #fafafa;
-	padding: 5px;
-	border: 1px solid #bbb;
-	color: black !important;
-	border-radius: 3px;
-	box-shadow: 2px 2px 2px 2px grey;
 }
 
-.fixorphanpage button {
-	float: right;
-}
--->
-</style>
-<?php
 // Show orphan pages button
 $orphanpages = emarking_get_digitized_answer_orphan_pages($context);
 $numorphanpages = count($orphanpages);
@@ -177,31 +158,10 @@ if ($numorphanpages == 0) {
         }
         $actions = array();
 
-        /*
-        #this url doesnt work
-        $deleteurl = new moodle_url('/mod/emarking/print/orphanpages.php', array(
-            'id' => $cm->id,
-            'delete' => $file->get_id()
-        ));
-
-        #neither does this one
-        $rotateurl = new moodle_url('/mod/emarking/print/orphanpages.php', array(
-            'id' => $cm->id,
-            'file' => $file->get_id(),
-            'rotate' => true
-        ));
-        */
-
         if ($usercanupload) {
-            #no idea what is this for, it looks like both buttons are for rotating the page, but neither work
-            #$actions[] = $OUTPUT->action_icon($rotateurl, new pix_icon('i/return', get_string('rotatepage', 'mod_emarking')));
-
-            #this thing here apparently activates the fix orphan page thing, it doesnt work
-            #$actions[] = $OUTPUT->pix_icon('i/user', get_string('assign_orphan_to_student', 'mod_emarking'), "", array("id" => "Test"));
             $assign_orphan_to_student = get_string("assign_orphan_to_student", "mod_emarking");
             $file_id = $file->get_id();
-            $actions[] = "<i class='icon fa fa-user fa-fw' title='$assign_orphan_to_student' onclick='showfixform($file_id)'></id>";
-            #$actions[] = '<i class="icon fa fa-user fa-fw" title="Assign orphan page to student" onclick="showfixform('.$file->get_id().')"></i>';
+            $actions[] = "<i class='icon fa fa-user fa-fw text-primary' style='cursor:pointer' title='$assign_orphan_to_student' onclick='showfixform($file_id)'></i>";
 
             $assignurl = new moodle_url('/mod/emarking/print/assign.php', array(
                 'id' => $cm->id,
@@ -214,35 +174,53 @@ if ($numorphanpages == 0) {
             $actions[] = $OUTPUT->action_icon(moodle_url::make_pluginfile_url($context->id, 'mod_emarking', 'orphanpages', $emarking->id, '/', $file->anonymous->get_filename()), new pix_icon('i/show', get_string('anonymousfile', 'mod_emarking')));
         }
 
-        #this seems like the actual piece to select the user
-        $actions[] = html_writer::div(html_writer::div(get_string('student', 'grades'), NULL, array(
-            'id' => 'error-student-' . $file->get_id()
-        )) . html_writer::tag('input', NULL, array(
-            'name' => 'student-' . $file->get_id(),
-            'type' => 'text',
-            'class' => 'studentname',
-            'tabindex' => ($shown * 2),
-            'fileid' => $file->get_id()
-        )) . '<br/>' . html_writer::div(get_string('page', 'mod_emarking'), NULL, array(
-            'id' => 'error-pagenumber-' . $file->get_id()
-        )) . html_writer::select($options, 'page-' . $file->get_id(), '', false, array(
-            'tabindex' => ($shown * 2 + 1),
-            'id' => 'page-' . $file->get_id()
-        )) . '<br/>' . html_writer::tag('button', get_string('cancel'), array(
-            'class' => 'btn',
-            'onclick' => 'return cancelchanges(' . $file->get_id() . ');'
-        )) . html_writer::tag('button', get_string('submit'), array(
-            'class' => 'btn',
-            'onclick' => 'return savechanges(' . $file->get_id() . ');'
-        )) . html_writer::tag('input', NULL, array(
-            'type' => 'hidden',
-            'name' => 'studentid-' . $file->get_id(),
-            'id' => 's' . $file->get_id()
-        )), 'fixorphanpage', array(
-            'id' => 'fix-' . $file->get_id()
-        )) . html_writer::div('', '', array(
-            'id' => 'content-' . $file->get_id()
-        ));
+        #todo remove all the #content-$fileid, lets just leave one
+        #fix orphan page pop-up
+        $fileid = $file->get_id();
+        $pageoptions = "";
+
+        #make the options
+        #get the test lenght
+        $conditions = ["id"=>$emarking->id];
+        $lenght = $DB->get_record("emarking_exams", $conditions, "totalpages")->totalpages;
+
+        #make a string with as many repetitions as needed
+        for($i = 1; $i <= $lenght; $i++)
+        {
+            $pageoptions .= "<option value='$i'> $i </option>";
+        }
+
+        echo "
+<style>
+.fixorphanpage {
+	display: none;
+	position: absolute;
+	background-color: #fafafa;
+	padding: 1rem;
+	border: 1px solid #bbb;
+	border-radius: 3px;
+}
+</style>
+        ";
+
+        #make the orphan page assigner
+        $actions[] = "
+        <div class='fixorphanpage' id='fix-$fileid'>
+            <div id='error-student-$fileid'>Student</div>
+            <input style='margin-bottom: 1rem' class='studentname ui-autocomplete-input' fileid='$fileid'>
+            <div> Page 
+                <select id='page-$fileid' class='select custom-select'>
+                    <option value='0'>Choose</option>
+                    $pageoptions
+                </select>
+            </div>
+            <div class='btn' onclick='cancelchanges($fileid)'>Cancel</div>
+            <div class='btn' onclick='savechanges($fileid)'>Submit</div>
+            <input type='hidden' name='studentid-$fileid' id='s$fileid'>
+        </div>
+        <div id='content-$fileid'></div>
+        ";
+
         $imgurl = moodle_url::make_pluginfile_url($context->id, 'mod_emarking', 'orphanpages', $emarking->id, '/', $file->get_filename());
         $imgurl .= '?r=' . random_string();
         $data = array(
@@ -269,6 +247,7 @@ if ($numorphanpages == 0) {
 }
 $students = get_enrolled_users($context, 'mod/emarking:submit');
 ?>
+
 <script type="text/javascript">
 // Course module id.
 var cmid = <?php echo $cm->id ?>;
@@ -371,7 +350,7 @@ function savechanges(fileid) {
 function cancelchanges(fileid) {
     console.log("deactivate");
 	$('#fix-'+fileid).hide();
-	return false;
+	$('#fix-'+fileid).hide();
 }
 // If the user presses the fix icon we show the form to fix a page.
 function showfixform(fileid) {
