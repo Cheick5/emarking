@@ -69,7 +69,7 @@ $string ['markingtypemandatory'] = 'You must select a marking type';
 $string ['emarkingviewed'] = 'Feedback viewed';
 $string ['updateemarkingtype'] = 'You are about to {$a->message} in {$a->name}. There are no risks in doing so, you can change this later in settings at any time.';
 // EMARKING UPLOAD TYPES.
-$string ['uploadtype_file'] = 'File';
+$string ['uploadtype_file'] = 'Student uploads file';
 $string ['uploadtype_html'] = 'Inline text (accepts HTML)';
 $string ['uploadtype_qr'] = 'Scanned QR code';
 $string ['uploadtype_text'] = 'Inline text (without HTML)';
