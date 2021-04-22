@@ -885,8 +885,11 @@ function emarking_tabs($context, $cm, $emarking, $draft=null) {
         $settingstab->subtree[] = new tabobject("osmsettings", $CFG->wwwroot . "/mod/emarking/marking/settings.php?id={$cm->id}", get_string("marking", 'mod_emarking'));
         $settingstab->subtree[] = new tabobject("comment", $CFG->wwwroot . "/mod/emarking/marking/predefinedcomments.php?id={$cm->id}&action=list", get_string("predefinedcomments", 'mod_emarking'));
         if (has_capability('mod/emarking:assignmarkers', $context)) {
-            $settingstab->subtree[] = new tabobject("markers", $CFG->wwwroot . "/mod/emarking/marking/markers.php?id={$cm->id}", get_string("markerspercriteria", 'mod_emarking'));
-            $settingstab->subtree[] = new tabobject("pages", $CFG->wwwroot . "/mod/emarking/marking/pages.php?id={$cm->id}", core_text::strtotitle(get_string("pagespercriteria", 'mod_emarking')));
+            if($emarking->uploadtype != EMARKING_UPLOAD_FILE)
+            {
+                $settingstab->subtree[] = new tabobject("markers", $CFG->wwwroot . "/mod/emarking/marking/markers.php?id={$cm->id}", get_string("markerspercriteria", 'mod_emarking'));
+                $settingstab->subtree[] = new tabobject("pages", $CFG->wwwroot . "/mod/emarking/marking/pages.php?id={$cm->id}", core_text::strtotitle(get_string("pagespercriteria", 'mod_emarking')));
+            }
             $settingstab->subtree[] = new tabobject("outcomes", $CFG->wwwroot . "/mod/emarking/marking/outcomes.php?id={$cm->id}", core_text::strtotitle(get_string("outcomes", "grades")));
             $settingstab->subtree[] = new tabobject("importrubric", $CFG->wwwroot . "/mod/emarking/marking/importrubric.php?id={$cm->id}&action=list", get_string("importrubric", 'mod_emarking'));
             $settingstab->subtree[] = new tabobject("export", $CFG->wwwroot . "/mod/emarking/marking/export.php?id={$cm->id}", core_text::strtotitle(get_string("export", "mod_data")));

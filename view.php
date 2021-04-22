@@ -488,7 +488,7 @@ foreach($drafts as $draft) {
         		$submissionid = $d->id;
         	}
         }
-       // $finalgrade .= emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubricscores, $emarking);
+        $finalgrade .= emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubricscores, $emarking);
         $actions .= emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $usercanpublishgrades, $numcriteria, $scan, $cm, $rubriccriteria);
         $feedback .= strlen($d->feedback) > 0 ? $d->feedback : '';
         $timemodified .= html_writer::start_div("timemodified");
