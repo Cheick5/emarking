@@ -1512,7 +1512,6 @@ function emarking_send_email_code($code, $user, $course, $examname) {
     $eventdata->fullmessagehtml = $thismessagehtml;
     $eventdata->smallmessage = $subject;
     $eventdata->notification = '1';
-    $eventdata->notification = '0';
     $eventdata->courseid = $course->id;
     return message_send($eventdata);
     
