@@ -63,7 +63,10 @@ $context = context_module::instance($cm->id);
 // the emarking is hidden
 list ($issupervisor, $usercangrade) = emarking_get_grading_permissions($emarking, $context);
 
-if($usercangrade == false && $submission->student != $USER->id)
+if(
+    $usercangrade == false && $submission->student != $USER->id ||
+    $usercangrade == false && $submission->student == $USER->id && $draft->status < EMARKING_STATUS_PUBLISHED
+)
 {
     echo get_string("emptypermissions", "mod_emarking");
     return false;
