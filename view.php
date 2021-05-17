@@ -837,6 +837,14 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             'width' => 860,
             'height' => 600
         )));
+    
+    #if the user is a student
+    #and the grading status is below PUBLISHED
+    #dont show any buttons
+    if($usercangrade == false && $d->status < EMARKING_STATUS_PUBLISHED){
+        return null;
+    }
+
     if($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
     }
@@ -848,14 +856,14 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
     if ((($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $d->qc == 1))
     	&& (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING) {
         if($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) {
-        $newstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? EMARKING_STATUS_ABSENT : EMARKING_STATUS_SUBMITTED;
-        $deletesubmissionurl = new moodle_url('/mod/emarking/marking/updatesubmission.php', array(
-            'ids' => $d->id,
-            'id' => $cm->id,
-            'status' => $newstatus
-        ));
-        $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
-        $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
+            $newstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? EMARKING_STATUS_ABSENT : EMARKING_STATUS_SUBMITTED;
+            $deletesubmissionurl = new moodle_url('/mod/emarking/marking/updatesubmission.php', array(
+                'ids' => $d->id,
+                'id' => $cm->id,
+                'status' => $newstatus
+            ));
+            $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
+            $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
         }
         if($d->status >= EMARKING_STATUS_GRADING && $d->pctmarked == 100) {
         	$printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
