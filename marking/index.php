@@ -56,6 +56,19 @@ $url = new moodle_url('/mod/emarking/marking/index.php', array(
     'id' => $draftid));
 // Create the context within the course module.
 $context = context_module::instance($cm->id);
+
+// if the user is a student then he can only see his own emarkings
+// this is implemented the following way:
+// if the user cannot grade, and its not its own emarking
+// the emarking is hidden
+list ($issupervisor, $usercangrade) = emarking_get_grading_permissions($emarking, $context);
+
+if($usercangrade == false && $submission->student != $USER->id)
+{
+    echo get_string("emptypermissions", "mod_emarking");
+    return false;
+}
+
 // Event indicating that a user opened an exam.
 $item = array(
     'context' => $context,
