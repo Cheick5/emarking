@@ -837,13 +837,6 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             'width' => 860,
             'height' => 600
         )));
-    
-    #if the user is a student
-    #and the grading status is below PUBLISHED
-    #dont show any buttons
-    if($usercangrade == false && $d->status < EMARKING_STATUS_PUBLISHED){
-        return null;
-    }
 
     if($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
@@ -865,7 +858,7 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
             $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
         }
-        if($d->status >= EMARKING_STATUS_GRADING && $d->pctmarked == 100) {
+        if($d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
         	$printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
 	            'id' => $cm->id,
             	'did' => $d->id
@@ -882,7 +875,7 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
         ));
         if($d->status < EMARKING_STATUS_SUBMITTED) {
             $actionsarray[] = $OUTPUT->action_link($uploadanswerurl, get_string('uploadsubmission', 'mod_emarking'));
-        } else if($owndraft && $d->status >= EMARKING_STATUS_GRADING && $d->pctmarked == 100) {
+        } else if($owndraft && $d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
             $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
                 'id' => $cm->id,
                 'did' => $d->id
