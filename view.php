@@ -819,7 +819,9 @@ function emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubr
     ));
     return $finalgrade;
 }
-function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $publishgradesform, $numcriteria, $scan, $cm, $rubriccriteria) {
+
+function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $publishgradesform, $numcriteria, $scan, $cm, $rubriccriteria)
+{
     global $OUTPUT, $USER;
     $owndraft = $USER->id == $draft->id;
     // Action buttons.
@@ -830,25 +832,26 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
     ));
     $label = ($usercangrade && !$scan) ? get_string('annotatesubmission', 'mod_emarking') : get_string('viewsubmission', 'mod_emarking');
     $markactionlink = $OUTPUT->action_link($popupurl, $label, new popup_action('click', $popupurl, 'emarking' . $d->id, array(
-            'menubar' => 'no',
-            'titlebar' => 'no',
-            'status' => 'no',
-            'toolbar' => 'no',
-            'width' => 860,
-            'height' => 600
-        )));
+        'menubar' => 'no',
+        'titlebar' => 'no',
+        'status' => 'no',
+        'toolbar' => 'no',
+        'width' => 860,
+        'height' => 600
+    )));
 
-    if($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
+    if ($owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
     }
     // EMarking button.
-    if($d->status >= EMARKING_STATUS_SUBMITTED) {
-    	$actionsarray[] = $markactionlink;
+    if ($d->status >= EMARKING_STATUS_SUBMITTED) {
+        $actionsarray[] = $markactionlink;
     }
     // Mark draft as absent/sent.
     if ((($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $d->qc == 1))
-    	&& (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING) {
-        if($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) {
+        && (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING
+    ) {
+        if ($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) {
             $newstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? EMARKING_STATUS_ABSENT : EMARKING_STATUS_SUBMITTED;
             $deletesubmissionurl = new moodle_url('/mod/emarking/marking/updatesubmission.php', array(
                 'ids' => $d->id,
@@ -858,24 +861,26 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
             $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
         }
-        if($d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
-        	$printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
-	            'id' => $cm->id,
-            	'did' => $d->id
-        	));
-        	$actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
+        if ($d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
+            $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
+                'id' => $cm->id,
+                'did' => $d->id
+            ));
+            $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
         }
     }
-    if($emarking->uploadtype == EMARKING_UPLOAD_FILE &&
-            has_capability('mod/emarking:submit', $context) &&
-            ($owndraft || $issupervisor)) {
+    if (
+        $emarking->uploadtype == EMARKING_UPLOAD_FILE &&
+        has_capability('mod/emarking:submit', $context) &&
+        ($owndraft || $issupervisor)
+    ) {
         $uploadanswerurl = new moodle_url('/mod/emarking/marking/uploadsubmission.php', array(
             'id' => $cm->id,
             'sid' => $draft->id
         ));
-        if($d->status < EMARKING_STATUS_SUBMITTED) {
+        if ($d->status < EMARKING_STATUS_SUBMITTED) {
             $actionsarray[] = $OUTPUT->action_link($uploadanswerurl, get_string('uploadsubmission', 'mod_emarking'));
-        } else if($owndraft && $d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
+        } else if ($owndraft && $d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
             $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
                 'id' => $cm->id,
                 'did' => $d->id
