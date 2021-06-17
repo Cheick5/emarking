@@ -819,7 +819,6 @@ function emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubr
     ));
     return $finalgrade;
 }
-
 function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $publishgradesform, $numcriteria, $scan, $cm, $rubriccriteria)
 {
     global $OUTPUT, $USER;
@@ -840,13 +839,20 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
         'height' => 600
     )));
 
-    if ($owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
+    if ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
     }
+
     // EMarking button.
-    if ($d->status >= EMARKING_STATUS_SUBMITTED) {
+    //this button can be either mark or view depending on if the user can grade
+    if ($d->status >= EMARKING_STATUS_SUBMITTED && (
+        $usercangrade || $issupervisor || (
+            $owndraft && $d->status >= EMARKING_STATUS_PUBLISHED
+        )
+    )) {
         $actionsarray[] = $markactionlink;
     }
+
     // Mark draft as absent/sent.
     if ((($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $d->qc == 1))
         && (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING
@@ -869,6 +875,7 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
         }
     }
+
     if (
         $emarking->uploadtype == EMARKING_UPLOAD_FILE &&
         has_capability('mod/emarking:submit', $context) &&
@@ -888,6 +895,8 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
         }
     }
+
+
     $divclass = $usercangrade ? 'printactions' : 'useractions';
     $actionshtml = implode("&nbsp;|&nbsp;", $actionsarray);
     if ($emarking->type != EMARKING_TYPE_MARKER_TRAINING) {

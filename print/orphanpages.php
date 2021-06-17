@@ -21,6 +21,9 @@
  * @copyright 2016-onwards Jorge Villalon <villalon@gmail.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+
 require_once (dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 global $PAGE, $DB, $CFG, $OUTPUT;
 require_once ($CFG->dirroot . "/repository/lib.php");
@@ -181,7 +184,7 @@ if ($numorphanpages == 0) {
 
         #make the options
         #get the test lenght
-        $conditions = ["id"=>$emarking->id];
+        $conditions = ["emarking"=>$emarking->id];
         $lenght = $DB->get_record("emarking_exams", $conditions, "totalpages")->totalpages;
 
         #make a string with as many repetitions as needed
