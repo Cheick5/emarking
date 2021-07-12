@@ -21,6 +21,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once (dirname(dirname(dirname(__FILE__))) . '/config.php');
+global $CFG;
 require_once ("lib.php");
 require_once ($CFG->libdir . '/tablelib.php');
 require_once ($CFG->dirroot . "/mod/emarking/locallib.php");
@@ -29,8 +30,7 @@ require_once ($CFG->dirroot . "/mod/emarking/print/locallib.php");
 require_once ($CFG->dirroot . "/lib/externallib.php");
 require_once ($CFG->dirroot . '/lib/excellib.class.php');
 require_once ($CFG->dirroot . "/mod/emarking/classes/event/unauthorizedaccess_attempted.php");
-require_once ($CFG->libdir . '/eventslib.php');
-global $USER, $OUTPUT, $DB, $CFG, $PAGE;
+global $USER, $OUTPUT, $DB, $PAGE;
 // Obtains basic data from cm id.
 list ($cm, $emarking, $course, $context) = emarking_get_cm_course_instance();
 // Check that user is logued in the course.
@@ -43,7 +43,6 @@ $urlemarking = new moodle_url('/mod/emarking/view.php', array(
     'id' => $cm->id
 ));
 // If it was an import.
-
 if($emarking->parent > 0 && $emarking->copiedfromparent == 0) {
     $srcemarking = $DB->get_record('emarking', array('id'=>$emarking->parent));
     emarking_copy_peer_review($srcemarking, $emarking);
@@ -104,19 +103,7 @@ if ($exportcsv && $usercangrade && $issupervisor) {
 $PAGE->set_url($urlemarking);
 $PAGE->set_context($context);
 $PAGE->set_course($course);
-$layout = 'incourse';
-if (isset($CFG->emarking_pagelayouttype)) {
-    switch ($CFG->emarking_pagelayouttype) {
-        case EMARKING_PAGES_LAYOUT_STANDARD :
-            $layout = 'standard';
-            break;
-        case EMARKING_PAGES_LAYOUT_EMBEDDED :
-            $layout = 'embedded';
-            break;
-    }
-}
-
-$PAGE->set_pagelayout($layout);
+$PAGE->set_pagelayout(emarking_get_layout());
 $PAGE->set_cm($cm);
 $PAGE->set_title(get_string('emarking', 'mod_emarking'));
 // Require jquery for modal.
@@ -188,6 +175,21 @@ if (!$usercangrade) {
         if ($emarking->type == EMARKING_TYPE_PEER_REVIEW && !$issupervisor && !is_siteadmin($USER->id)) {
             $userfilter .= 'AND (um.id = ' . $USER->id . ' OR u.id = ' . $USER->id . ')';
         }
+// Check if activity is configured with separate groups to filter users.
+if ($cm->groupmode == SEPARATEGROUPS && ($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING || $emarking->type == EMARKING_TYPE_PRINT_SCAN) &&
+         $usercangrade && ! is_siteadmin($USER)) {
+    $userfilter .= "
+		AND u.id in (
+			SELECT userid
+			FROM {groups_members}
+			WHERE groupid in (
+				SELECT groupid
+				FROM {groups_members} gm
+				INNER JOIN {groups} g on (gm.groupid = g.id)
+				WHERE gm.userid = $USER->id AND g.courseid = $COURSE->id
+							)
+					)";
+}
 $qcfilter = ' AND d.qualitycontrol = 0';
 if ($emarking->qualitycontrol && ($DB->count_records('emarking_markers', array(
     'emarking' => $emarking->id,
@@ -230,9 +232,9 @@ if ($emarking->type == EMARKING_TYPE_MARKER_TRAINING) {
 }
 // Show export buttons when grades are available
 if($usercangrade) {
-	if (isset($CFG->emarking_pagelayouttype)&&$CFG->emarking_pagelayouttype!=EMARKING_PAGES_LAYOUT_EMBEDDED ) {
+	
 	emarking_show_export_buttons($issupervisor, $rubriccriteria, $cm, $emarking, $numdraftsgrading);
-	}
+	
 }
 if($emarking->type == EMARKING_TYPE_MARKER_TRAINING) {
     echo $OUTPUT->heading(get_string('marking_progress', 'mod_emarking'), 5);
@@ -402,28 +404,24 @@ if (has_capability("mod/emarking:supervisegrading", $context) && !$scan && $rubr
     $actionsheader .= $usercangrade ? '<input type="checkbox" id="select_all" title="' . get_string('selectall', 'mod_emarking') . '">' : '';
 }
 $headers = array();
-$headers[] = get_string('names', 'mod_emarking');
-if ($emarking->type == EMARKING_TYPE_MARKER_TRAINING || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $issupervisor)) {
-    $headers[] = get_string('marker', 'mod_emarking');
-}
-if ($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING || $emarking->type == EMARKING_TYPE_PEER_REVIEW) {
-   if( isset($CFG->emarking_pagelayouttype) && $CFG->emarking_pagelayouttype != EMARKING_PAGES_LAYOUT_EMBEDDED){
-	$headers[] = get_string('grade', 'mod_emarking');
-   }
-}
-$headers[] = get_string('status', 'mod_emarking');
-$headers[] = get_string('actions', 'mod_emarking');
-$headers[] = $actionsheader;
 $columns = array();
+$headers[] = get_string('names', 'mod_emarking');
 $columns[] = 'lastname';
 if ($emarking->type == EMARKING_TYPE_MARKER_TRAINING || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $issupervisor)) {
+    $headers[] = get_string('marker', 'mod_emarking');
     $columns[] = 'marker';
 }
 if ($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING || $emarking->type == EMARKING_TYPE_PEER_REVIEW) {
-    $columns[] = 'grade';
+    if( isset($CFG->emarking_pagelayouttype) && $CFG->emarking_pagelayouttype != EMARKING_PAGES_LAYOUT_EMBEDDED){
+		$headers[] = get_string('grade', 'mod_emarking');
+		$columns[] = 'grade';
+    }
 }
+$headers[] = get_string('status', 'mod_emarking');
 $columns[] = 'status';
+$headers[] = get_string('actions', 'mod_emarking');
 $columns[] = 'actions';
+$headers[] = $actionsheader;
 $columns[] = 'select';
 // Define flexible table (can be sorted in different ways).
 $showpages = new flexible_table('emarking-view-' . $cm->id);
@@ -490,7 +488,7 @@ foreach($drafts as $draft) {
         		$submissionid = $d->id;
         	}
         }
-       // $finalgrade .= emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubricscores, $emarking);
+        $finalgrade .= emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubricscores, $emarking);
         $actions .= emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $usercanpublishgrades, $numcriteria, $scan, $cm, $rubriccriteria);
         $feedback .= strlen($d->feedback) > 0 ? $d->feedback : '';
         $timemodified .= html_writer::start_div("timemodified");
@@ -821,7 +819,8 @@ function emarking_get_finalgrade($d, $usercangrade, $issupervisor, $draft, $rubr
     ));
     return $finalgrade;
 }
-function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $publishgradesform, $numcriteria, $scan, $cm, $rubriccriteria) {
+function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $issupervisor, $publishgradesform, $numcriteria, $scan, $cm, $rubriccriteria)
+{
     global $OUTPUT, $USER;
     $owndraft = $USER->id == $draft->id;
     // Action buttons.
@@ -830,49 +829,45 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
     $popupurl = new moodle_url('/mod/emarking/marking/index.php', array(
         'id' => $d->id
     ));
-    if($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
+    $label = ($usercangrade && !$scan) ? get_string('annotatesubmission', 'mod_emarking') : get_string('viewsubmission', 'mod_emarking');
+    $markactionlink = $OUTPUT->action_link($popupurl, $label, new popup_action('click', $popupurl, 'emarking' . $d->id, array(
+        'menubar' => 'no',
+        'titlebar' => 'no',
+        'status' => 'no',
+        'toolbar' => 'no',
+        'width' => 860,
+        'height' => 600
+    )));
+
+    if ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
     }
+
     // EMarking button.
-    if (($usercangrade && $d->status >= EMARKING_STATUS_SUBMITTED && $numcriteria > 0) || $d->status >= EMARKING_STATUS_PUBLISHED || ($emarking->type == EMARKING_TYPE_PRINT_SCAN && $d->status >= EMARKING_STATUS_SUBMITTED)) {
-        $label = ($usercangrade && !$scan) ? get_string('annotatesubmission', 'mod_emarking') : get_string('viewsubmission', 'mod_emarking');
-        $actionsarray[] = $OUTPUT->action_link($popupurl, $label, new popup_action('click', $popupurl, 'emarking' . $d->id, array(
-            'menubar' => 'no',
-            'titlebar' => 'no',
-            'status' => 'no',
-            'toolbar' => 'no',
-            'width' => 860,
-            'height' => 600
-        )));
+    //this button can be either mark or view depending on if the user can grade
+    if ($d->status >= EMARKING_STATUS_SUBMITTED && (
+        $usercangrade || $issupervisor || (
+            $owndraft && $d->status >= EMARKING_STATUS_PUBLISHED
+        )
+    )) {
+        $actionsarray[] = $markactionlink;
     }
+
     // Mark draft as absent/sent.
-    if ((($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $d->qc == 1)) && (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING) {
-        if($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) {
-        $newstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? EMARKING_STATUS_ABSENT : EMARKING_STATUS_SUBMITTED;
-        $deletesubmissionurl = new moodle_url('/mod/emarking/marking/updatesubmission.php', array(
-            'ids' => $d->id,
-            'id' => $cm->id,
-            'status' => $newstatus
-        ));
-        $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
-        $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
+    if ((($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) || ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $d->qc == 1))
+        && (is_siteadmin($USER) || ($issupervisor && $usercangrade)) && $d->status > EMARKING_STATUS_MISSING
+    ) {
+        if ($emarking->type == EMARKING_TYPE_ON_SCREEN_MARKING && $d->qc == 0) {
+            $newstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? EMARKING_STATUS_ABSENT : EMARKING_STATUS_SUBMITTED;
+            $deletesubmissionurl = new moodle_url('/mod/emarking/marking/updatesubmission.php', array(
+                'ids' => $d->id,
+                'id' => $cm->id,
+                'status' => $newstatus
+            ));
+            $msgstatus = $d->status >= EMARKING_STATUS_SUBMITTED ? get_string('setasabsent', 'mod_emarking') : get_string('setassubmitted', 'mod_emarking');
+            $actionsarray[] = $OUTPUT->action_link($deletesubmissionurl, $msgstatus);
         }
-        $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
-            'id' => $cm->id,
-            'did' => $d->id
-        ));
-        $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
-    }
-    if($emarking->uploadtype == EMARKING_UPLOAD_FILE &&
-            has_capability('mod/emarking:submit', $context) &&
-            ($owndraft || $issupervisor)) {
-        $uploadanswerurl = new moodle_url('/mod/emarking/marking/uploadsubmission.php', array(
-            'id' => $cm->id,
-            'sid' => $draft->id
-        ));
-        if($d->status < EMARKING_STATUS_SUBMITTED) {
-            $actionsarray[] = $OUTPUT->action_link($uploadanswerurl, get_string('uploadsubmission', 'mod_emarking'));
-        } else if($owndraft) {
+        if ($d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
             $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
                 'id' => $cm->id,
                 'did' => $d->id
@@ -880,6 +875,28 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
             $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
         }
     }
+
+    if (
+        $emarking->uploadtype == EMARKING_UPLOAD_FILE &&
+        has_capability('mod/emarking:submit', $context) &&
+        ($owndraft || $issupervisor)
+    ) {
+        $uploadanswerurl = new moodle_url('/mod/emarking/marking/uploadsubmission.php', array(
+            'id' => $cm->id,
+            'sid' => $draft->id
+        ));
+        if ($d->status < EMARKING_STATUS_SUBMITTED) {
+            $actionsarray[] = $OUTPUT->action_link($uploadanswerurl, get_string('uploadsubmission', 'mod_emarking'));
+        } else if ($owndraft && $d->status >= EMARKING_STATUS_PUBLISHED && $d->pctmarked == 100) {
+            $printversionurl = new moodle_url('/mod/emarking/marking/printversion.php', array(
+                'id' => $cm->id,
+                'did' => $d->id
+            ));
+            $actionsarray[] = $OUTPUT->action_link($printversionurl, "PDF");
+        }
+    }
+
+
     $divclass = $usercangrade ? 'printactions' : 'useractions';
     $actionshtml = implode("&nbsp;|&nbsp;", $actionsarray);
     if ($emarking->type != EMARKING_TYPE_MARKER_TRAINING) {

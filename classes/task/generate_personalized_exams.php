@@ -31,8 +31,8 @@ class generate_personalized_exams extends \core\task\scheduled_task {
     public function execute() {
         global $CFG, $DB;
         require_once ($CFG->dirroot . "/lib/pdflib.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
         require_once ($CFG->dirroot . "/mod/emarking/lib/phpqrcode/phpqrcode.php");
         require_once ($CFG->dirroot . '/mod/emarking/lib.php');
         require_once ($CFG->dirroot . "/mod/emarking/locallib.php");

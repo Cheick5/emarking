@@ -25,6 +25,7 @@
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_once($CFG->dirroot . '/mod/emarking/locallib.php');
 require_once('forms/gradereport_form.php');
+require_once('forms/feedback_form.php');
 global $DB, $USER;
 // Obtains basic data from cm id.
 list($cm, $emarking, $course, $context) = emarking_get_cm_course_instance();
@@ -38,20 +39,14 @@ if (isguestuser()) {
 }
 // Validate the user has grading capabilities.
 require_capability('mod/emarking:grade', $context);
+// Obtain user permissions for grading and supervising.
+list ($issupervisor, $usercangrade) = emarking_get_grading_permissions($emarking, $context);
 // Page settings (URL, breadcrumbs and title).
 $PAGE->set_context($context);
 $PAGE->set_course($course);
 $PAGE->set_cm($cm);
 $PAGE->set_url($url);
-switch($CFG->emarking_pagelayouttype){
-	case EMARKING_PAGES_LAYOUT_STANDARD:
-		$PAGE->set_pagelayout('standard');
-		break;
-		
-	case EMARKING_PAGES_LAYOUT_EMBEDDED:
-		$PAGE->set_pagelayout('embedded');
-		break;
-}
+$PAGE->set_pagelayout(emarking_get_layout());
 $PAGE->navbar->add(get_string('feedbackreport', 'mod_emarking'));
 // Require jquery for modal.
 $PAGE->requires->jquery();
@@ -59,9 +54,19 @@ $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
 echo $OUTPUT->header();
 echo $OUTPUT->heading($emarking->name);
+$form = new emarking_feedback_form(null, array('cmid'=>$cm->id));
+if($form->get_data()) {
+	$emarking->markingfeedback = $form->get_data()->markingfeedback;
+	$DB->update_record('emarking', $emarking);
+	echo $OUTPUT->notification(get_string('changessaved', 'mod_emarking'), 'success');
+} else {
+	$emarkingdefault = new stdClass();
+	$emarkingdefault->markingfeedback = $emarking->markingfeedback;
+	$form->set_data($emarkingdefault);
+}
 // Print eMarking tabs.
-if($CFG->emarking_pagelayouttype == EMARKING_PAGES_LAYOUT_STANDARD){
-	echo $OUTPUT->tabtree(emarking_tabs($context, $cm, $emarking), 'feedback');
+if($CFG->emarking_pagelayouttype == EMARKING_PAGES_LAYOUT_STANDARD) {
+	echo $OUTPUT->tabtree(emarking_tabs($context, $cm, $emarking), "feedback");
 }
 list($gradingmanager, $gradingmethod, $definition, $rubriccontroller) =
     emarking_validate_rubric($context, true, true);
@@ -143,12 +148,32 @@ foreach($comments as $comment) {
     $s = preg_split('/\s/', $s);
     foreach($s as $ss) {
         $token = core_text::strtolower($ss);
+        if(strlen($token) <= 1) {
+        	continue;
+        }
         if(!isset($words[$token]))
             $words[$token] = 0;
         $words[$token]++;
     }
 }
+//var_dump($words);
 $stopwords = array('algún','alguna','algunas','alguno','algunos','ambos','ampleamos','ante','antes','aquel','aquellas','aquellos','aqui','arriba','atras','bajo','bastante','bien','cada','cierta','ciertas','cierto','ciertos','como','con','conseguimos','conseguir','consigo','consigue','consiguen','consigues','cual','cuando','dentro','desde','donde','dos','el','ellas','ellos','empleais','emplean','emplear','empleas','empleo','en','encima','entonces','entre','era','eramos','eran','eras','eres','es','esta','estaba','estado','estais','estamos','estan','estoy','fin','fue','fueron','fui','fuimos','gueno','ha','hace','haceis','hacemos','hacen','hacer','haces','hago','incluso','intenta','intentais','intentamos','intentan','intentar','intentas','intento','ir','la','largo','las','lo','los','mientras','mio','modo','muchos','muy','nos','nosotros','otro','para','pero','podeis','podemos','poder','podria','podriais','podriamos','podrian','podrias','por','por qué','porque','primero','puede','pueden','puedo','quien','sabe','sabeis','sabemos','saben','saber','sabes','ser','si','siendo','sin','sobre','sois','solamente','solo','somos','soy','su','sus','también','teneis','tenemos','tener','tengo','tiempo','tiene','tienen','todo','trabaja','trabajais','trabajamos','trabajan','trabajar','trabajas','trabajo','tras','tuyo','ultimo','un','una','unas','uno','unos','usa','usais','usamos','usan','usar','usas','uso','va','vais','valor','vamos','van','vaya','verdad','verdadera','verdadero','vosotras','vosotros','voy','yo');
+arsort($words);
+$total = 0;
+$cleanwords = array();
+foreach($words as $w => $f) {
+	if(strlen($w) < 2 || array_search($w, $stopwords))
+		continue;
+		$total++;
+		$wurl = urlencode($w);
+		$popupurl = $CFG->wwwroot . '/mod/emarking/reports/preview.php' . '?id=' . $cm->id . '&filter=tag&fids='.$wurl;
+		$thisword = array();
+		$thisword['w'] = $w;
+		$thisword['f'] = $f;
+		$thisword['popupurl'] = $popupurl;
+		$cleanwords[] = $thisword;
+}
+
 ?>
 <script src="<?php echo $CFG->wwwroot . '/mod/emarking/lib/jqcloud' ?>/jqcloud-1.0.4.min.js"></script>
 <link rel="stylesheet" href="<?php echo $CFG->wwwroot . '/mod/emarking/lib/jqcloud' ?>/jqcloud.css">
@@ -182,31 +207,28 @@ $stopwords = array('algún','alguna','algunas','alguno','algunos','ambos','ample
 <script type="text/javascript">
       var word_list = [
 <?php
-arsort($words);
-$total = 0;
-foreach($words as $w => $f) {
-    if(strlen($w) < 2 || array_search($w, $stopwords))
-        continue;
-    $total++;
-    $vertical = '';
-    if($total % 2 != 0) {
-        // $vertical = ', html: {"class": "vertical"}';
-    }
-    $wurl = urlencode($w);
-    $popupurl = $CFG->wwwroot . '/mod/emarking/reports/preview.php' . '?id=' . $cm->id . '&filter=tag&fids='.$wurl;
-    echo "{text: \"$w\", weight:$f, link: \"$popupurl\"$vertical},";
-}
+	foreach($cleanwords as $cword) {
+		echo "{text: \"".$cword['w']."\", weight:".$cword['f'].", link: \"".$cword['popupurl']."\"},";
+	}
 ?>
 ];
       $(function() {
 	        $("#my_favorite_latin_words").jQCloud(word_list);
 	  });
 </script>
-<?php echo $OUTPUT->heading(get_string('feedbackwordcloud', 'mod_emarking')); ?>
+<?php
+if($issupervisor) {
+	$form->display();
+} else {
+	echo $OUTPUT->heading(get_string('markingfeedback', 'mod_emarking'));
+	echo format_text($emarking->markingfeedback);
+}
+echo $OUTPUT->heading(get_string('feedbackwordcloud', 'mod_emarking'));
+?>
 <div id="my_favorite_latin_words" style="width: 95%; height: 250px; border: 1px solid #ccc;"></div>
 <?php echo $OUTPUT->footer();
 function emarking_table_from_criterion($criterion, $cm) {
-    global $OUTPUT;
+    global $OUTPUT, $CFG;
     $levelstable = new html_table();
     $levelstable->attributes ['class'] = 'none';
     $levelstable->data = array();
@@ -239,7 +261,7 @@ function emarking_table_from_criterion($criterion, $cm) {
         		'Nivel ' . $current
         		, 'definition');
         $levelstable->data [1] [] = html_writer::div(
-                $level->definition
+                format_text($level->definition)
                 , 'definition');
         $levelstable->data [2] [] = html_writer::div(
                 html_writer::div($percentage > 0 ? $percentage . '%' : '',
