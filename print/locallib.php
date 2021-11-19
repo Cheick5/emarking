@@ -86,9 +86,8 @@ function emarking_generate_personalized_exams($category = NULL) {
             $filedir = $CFG->dataroot . "/temp/emarking/$exam->id";
             emarking_initialize_directory($filedir, true);
         } catch (Exception $e) {
-var_dump($e);
-die();           
- $message = 'exception printing';
+            var_dump($e);
+            $message = 'exception printing';
             // Update the exam status to error.
             $exam->status = EMARKING_EXAM_ERROR_PROCESSING;
             $DB->update_record('emarking_exams', $exam);
