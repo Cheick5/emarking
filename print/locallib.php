@@ -2200,9 +2200,12 @@ function emarking_create_qr_image($fileimg, $qrstring, $stinfo, $i) {
     QRcode::png($qrstring, $img);
     // Same image but rotated.
     QRcode::png($qrstring . "-R", $imgrotated);
-    $gdimg = imagecreatefrompng($imgrotated);
-    $rotated = imagerotate($gdimg, 180, 0);
-    imagepng($rotated, $imgrotated);
+
+    $imagick = new Imagick();
+    $imagick->readImage($imgrotated);
+    $imagick->rotateimage('#00000000', 180);
+    $imagick->writeImage($imgrotated);
+
     return array(
         $img,
         $imgrotated
