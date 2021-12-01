@@ -209,6 +209,7 @@ $string ['downloadexam'] = 'Download exam';
 $string ['reprocessexam'] = 'Reprocess exam';
 $string ['comment_help'] = 'Comment for the printing staff.';
 $string ['uploaded'] = 'Uploaded';
+$string ['examsentoprint'] = 'Exam sent to print';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (much worse than I deserved)';
 $string ['er-3'] = '-3';

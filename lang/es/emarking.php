@@ -209,6 +209,7 @@ $string ['downloadexam'] = 'Descargar prueba';
 $string ['reprocessexam'] = 'Reprocesar prueba';
 $string ['comment_help'] = 'Comentario para hacer llegar a la impresión.';
 $string ['uploaded'] = 'Subida';
+$string ['examsentoprint'] = 'Prueba enviada a impresión';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (mucho peor de lo que merecía)';
 $string ['er-3'] = '-3';
