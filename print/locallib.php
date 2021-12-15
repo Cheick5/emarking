@@ -329,7 +329,7 @@ function emarking_send_processanswers_notification($emarking, $course) {
         $eventdata->smallmessage = $postsubject;
         $eventdata->notification = 1;
         // $eventdata->courseid = $course->id;
-        //message_send($eventdata);
+        message_send($eventdata);
     }
     // Save the date of the digitization.
     $emarking->digitizingdate = time();
