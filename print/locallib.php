@@ -2171,7 +2171,7 @@ function emarking_draw_header($pdf, $stinfo, $examname, $pagenumber, $fileimgpat
     }
     list ($img, $imgrotated) = emarking_create_qr_image($fileimgpath, $qrstring, $stinfo, $pagenumber);
     $pdf->Image($img, 176, 3, 34);
-    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == 1) {
+    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == true) {
         $pdf->Image($imgrotated, 0, $pdf->getPageHeight() - 35, 34);
     }
     // Delete QR images.
