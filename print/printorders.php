@@ -26,6 +26,13 @@
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
 require_once($CFG->dirroot . '/mod/emarking/locallib.php');
 require_once('locallib.php');
+
+// User must be logged in.
+require_login();
+if (isguestuser()) {
+    die();
+}
+
 global $DB, $CFG, $SCRIPT, $USER;
 // Category with courses.
 $categories_id = [optional_param('category', 0, PARAM_INT)];
@@ -71,6 +78,46 @@ if ($categories_id == [0]) {
     $categories_id = $lowest_level_categories_id;
 }
 
+// Creating tables and adding columns header.
+$examstable = new html_table();
+$examstable->head = array(
+    get_string('date'),
+    get_string('exam', 'mod_emarking'),
+    get_string('course'),
+    get_string('details', 'mod_emarking'),
+    get_string('requestedby', 'mod_emarking'),
+    get_string('cost', 'mod_emarking'),
+    $statusicon == 1 ? get_string('sent', "mod_emarking") : get_string('examdateprinted', 'mod_emarking'),
+    $statusicon == 1 ? ucfirst(get_string('pages', 'mod_emarking')) : get_string('actions'),
+    $statusicon == 1 ? get_string('actions') : get_string('printnotification', 'mod_emarking')
+);
+$examstable->id = "fbody";
+$examstable->size = array(
+    '15%',
+    '15%',
+    '15%',
+    '10%',
+    '10%',
+    '10%',
+    '7%',
+    '7%',
+    '10%'
+);
+$examstable->align = array(
+    'left',
+    'center',
+    'center',
+    'center',
+    'center',
+    'center',
+    'center',
+    'center',
+    'center'
+);
+$examstable->colclasses[1] = 'exams_examname';
+
+$totalexams = 0;
+
 foreach ($categories_id as $index => $categoryid) {
 
     // Validate category.
@@ -79,11 +126,6 @@ foreach ($categories_id as $index => $categoryid) {
     }
     // We are in the category context.
     $context = context_coursecat::instance($categoryid);
-    // User must be logged in.
-    require_login();
-    if (isguestuser()) {
-        die();
-    }
     // And have printordersview capability.
     if (!has_capability('mod/emarking:printordersview', $context)) {
         // TODO: Log invalid access to printorders.
@@ -159,43 +201,7 @@ foreach ($categories_id as $index => $categoryid) {
             echo $OUTPUT->heading($pagetitle . ' ' . $category->name);
         }
     }
-    // Creating tables and adding columns header.
-    $examstable = new html_table();
-    $examstable->head = array(
-        get_string('date'),
-        get_string('exam', 'mod_emarking'),
-        get_string('course'),
-        get_string('details', 'mod_emarking'),
-        get_string('requestedby', 'mod_emarking'),
-        get_string('cost', 'mod_emarking'),
-        $statusicon == 1 ? get_string('sent', "mod_emarking") : get_string('examdateprinted', 'mod_emarking'),
-        $statusicon == 1 ? ucfirst(get_string('pages', 'mod_emarking')) : get_string('actions'),
-        $statusicon == 1 ? get_string('actions') : get_string('printnotification', 'mod_emarking')
-    );
-    $examstable->id = "fbody";
-    $examstable->size = array(
-        '15%',
-        '15%',
-        '15%',
-        '10%',
-        '10%',
-        '10%',
-        '7%',
-        '7%',
-        '10%'
-    );
-    $examstable->align = array(
-        'left',
-        'center',
-        'center',
-        'center',
-        'center',
-        'center',
-        'center',
-        'center',
-        'center'
-    );
-    $examstable->colclasses[1] = 'exams_examname';
+
     // Parameters for SQL calls.
     if ($statusicon == 1) {
         $statuses = array(
@@ -215,11 +221,11 @@ foreach ($categories_id as $index => $categoryid) {
     $order = $statusicon == 1 ? "e.examdate asc, c.shortname ASC" : "e.examdate desc, c.shortname ASC";
     list($childrensql, $childrenparams) = $DB->get_in_or_equal(emarking_get_categories_childs($categoryid));
     $childrenparams = array($categoryid, $categoryid);
-    $sqlcount = " SELECT count(*)
- FROM {emarking_exams} as e
-INNER JOIN {course} as c ON (e.course = c.id)
-INNER JOIN {course_categories} as cc ON (cc.id = c.category)
-WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.status {$statussql}";
+    $sqlcount = "   SELECT count(*)
+                    FROM {emarking_exams} as e
+                    INNER JOIN {course} as c ON (e.course = c.id)
+                    INNER JOIN {course_categories} as cc ON (cc.id = c.category)
+                    WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.status {$statussql}";
     // Get the count so we can use pagination.
     $examscount = $DB->count_records_sql($sqlcount, $params);
     $sql = "SELECT e.*,
@@ -239,6 +245,7 @@ WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.sta
     $exams = $DB->get_records_sql($sql, $params, $page * $perpage, ($page + 1) * $perpage); // Status = 1 means still not downloaded.
     $currentdate = time();
     $current = 0;
+    $totalexams += count($exams);
     foreach ($exams as $exam) {
         // Url for the course.
         $urlcourse = new moodle_url('/course/view.php', array(
@@ -381,27 +388,29 @@ WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.sta
         );
         $current++;
     }
-    if (count($exams) > 0) {
-        echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
-        echo html_writer::tag("input", null, array("id" => "searchInput", "class"=>"mb-2"));
-        echo "<br>";
-        echo html_writer::table($examstable); // Print the table.
-        echo $OUTPUT->paging_bar(
-            $examscount,
-            $page,
-            $perpage,
-            $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page='
-        );
-    } else if(count($categories_id) == 1) {
-        echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
-    }
-    $downloadurl = new moodle_url('/mod/emarking/print/download.php');
-    if ($CFG->emarking_usesms) {
-        $message = get_string('smsinstructions', 'mod_emarking', $USER);
-    } else {
-        $message = get_string('emailinstructions', 'mod_emarking', $USER);
-    }
 }
+
+if (count($exams) > 0) {
+    echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
+    echo html_writer::tag("input", null, array("id" => "searchInput", "class"=>"mb-2"));
+    echo "<br>";
+    echo html_writer::table($examstable); // Print the table.
+    echo $OUTPUT->paging_bar(
+        $examscount,
+        $page,
+        $perpage,
+        $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page='
+    );
+} else if(count($categories_id) == 1) {
+    echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
+}
+$downloadurl = new moodle_url('/mod/emarking/print/download.php');
+if ($CFG->emarking_usesms) {
+    $message = get_string('smsinstructions', 'mod_emarking', $USER);
+} else {
+    $message = get_string('emailinstructions', 'mod_emarking', $USER);
+}
+
 ?>
 <script type="text/javascript">
     $("#searchInput").keyup(function() {
