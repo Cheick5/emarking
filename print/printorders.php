@@ -390,7 +390,7 @@ foreach ($categories_id as $index => $categoryid) {
     }
 }
 
-if (count($exams) > 0) {
+if ($totalexams > 0) {
     echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
     echo html_writer::tag("input", null, array("id" => "searchInput", "class"=>"mb-2"));
     echo "<br>";
