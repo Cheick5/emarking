@@ -1839,7 +1839,7 @@ function emarking_is_regrade_requests_allowed($emarking) {
  * @return Ambigous <string, unknown>
  */
 function emarking_get_categories_childs($idcategory) {
-    $coursecat = coursecat::get($idcategory);
+    $coursecat = core_course_category::get($idcategory);
     $ids = array();
     $ids[] = $idcategory;
     foreach($coursecat->get_children() as $id => $childcategory) {

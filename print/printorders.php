@@ -28,7 +28,7 @@ require_once($CFG->dirroot . '/mod/emarking/locallib.php');
 require_once('locallib.php');
 global $DB, $CFG, $SCRIPT, $USER;
 // Category with courses.
-$categoryid = required_param('category', PARAM_INT);
+$categoryid = optional_param('category', 0, PARAM_INT);
 // Status icon.
 $statusicon = optional_param('status', 1, PARAM_INT);
 // Page action.
@@ -45,9 +45,34 @@ emarking_verify_logo();
 if ($statusicon < 1 || $statusicon > 2) {
     print_error(get_string("invalidstatus", "mod_emarking"));
 }
+
+// if we don't have a category check the available categories and select the highest one
+if($categoryid == 0) {
+    // If no category given we get all categories the user has access to
+    $categories = core_course_category::make_categories_list('mod/emarking:printordersview');
+
+    $best_level = INF;
+    $best_category_id = -1;
+
+    // select category with least number of slashes
+    foreach ($categories as $index => $category)  {
+
+        // we separate the category by its slashes and count how many it has
+        // sadly this cannot detect root-level categories, so its unable to 
+        // show all categories at once
+        $level = Count(explode(" / ", $category));
+
+        if($level < $best_level) 
+        {
+            $best_category_id = $index;
+            $best_level = $level;
+        }
+    }
+    $categoryid = $best_category_id;
+}
+
 // Validate category.
-if (! $category = $DB->get_record('course_categories', array(
-    'id' => $categoryid))) {
+if (!$category = $DB->get_record('course_categories', array('id' => $categoryid))) {
     print_error(get_string('invalidcategoryid', 'mod_emarking'));
 }
 // We are in the category context.
