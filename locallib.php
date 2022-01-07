@@ -1038,11 +1038,11 @@ function emarking_verify_logo() {
 function emarking_get_logo_file($filedir) {
     $fs = get_file_storage();
     $syscontext = context_system::instance();
-    if ($files = $fs->get_area_files($syscontext->id, 'mod_emarking', 'logo', 1, "filename", false)) {
+    if ($files = $fs->get_area_files($syscontext->id, 'core', 'logo', 1, "filename", false)) {
         foreach($files as $file) {
             $filename = $file->get_filename();
             if ($filename !== '.') {
-                $existingfile = $fs->get_file($syscontext->id, 'mod_emarking', 'logo', 1, '/', $file->get_filename());
+                $existingfile = $fs->get_file($syscontext->id, 'core', 'logo', 1, '/', $file->get_filename());
                 if ($existingfile) {
                     return emarking_get_path_from_hash($filedir, $existingfile->get_pathnamehash());
                 }

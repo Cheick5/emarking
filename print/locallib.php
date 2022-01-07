@@ -232,7 +232,7 @@ function emarking_get_student_picture($student, $userimgdir) {
         'filearea' => 'icon',
         'filename' => 'f1.png'
     ));
-    if ($imgfile) {
+    if ($imgfile && $CFG->emarking_includeuserpicture) {
         return emarking_get_path_from_hash($userimgdir, $imgfile->pathnamehash, "u" . $student->id, true);
     } else {
         return $CFG->dirroot . "/pix/u/f1.png";
