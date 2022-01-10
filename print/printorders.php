@@ -251,6 +251,9 @@ foreach ($categories_id as $index => $categoryid) {
         $urlcourse = new moodle_url('/course/view.php', array(
             'id' => $exam->course
         ));
+        $urlcategory = new moodle_url('/mod/emarking/print/printorders.php', array(
+            'id' => $categoryid
+        ));
         // Url for the user profile of the person who requested the exam.
         $urlprofile = new moodle_url('/user/profile.php', array(
             'id' => $exam->userid
@@ -378,7 +381,7 @@ foreach ($categories_id as $index => $categoryid) {
             date("l jS F g:ia", $exam->examdate),
             $exam->name,
             $OUTPUT->action_link($urlcourse, $exam->coursefullname),
-            $exam->category . '<br/>' . $enrolments,
+            $OUTPUT->action_link($urlcategory,  $exam->category) . '<br/>' . $enrolments,
             $OUTPUT->action_link($urlprofile, $exam->userfullname),
             '$' . number_format($exam->cost) .
                 $OUTPUT->action_icon($urlcost, new pix_icon("i/edit", get_string("downloadform", "mod_emarking"))),
@@ -391,6 +394,10 @@ foreach ($categories_id as $index => $categoryid) {
 }
 
 if ($totalexams > 0) {
+    if (count($categories_id) == 1) {
+        $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
+        echo $OUTPUT->tabtree(emarking_printoders_tabs($category), $activetab);
+    }
     echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
     echo html_writer::tag("input", null, array("id" => "searchInput", "class"=>"mb-2"));
     echo "<br>";
@@ -401,9 +408,10 @@ if ($totalexams > 0) {
         $perpage,
         $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page='
     );
-} else if(count($categories_id) == 1) {
+} else {
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
+
 $downloadurl = new moodle_url('/mod/emarking/print/download.php');
 if ($CFG->emarking_usesms) {
     $message = get_string('smsinstructions', 'mod_emarking', $USER);
