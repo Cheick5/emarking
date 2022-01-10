@@ -57,6 +57,8 @@ if ($statusicon < 1 || $statusicon > 2) {
 if ($categories_id == [0]) {
     // If no category given we get all categories the user has access to
 
+    echo ("DEBUG");
+
     $categories = core_course_category::make_categories_list('mod/emarking:printordersview');
 
     # leave only top level ones
@@ -252,7 +254,7 @@ foreach ($categories_id as $index => $categoryid) {
             'id' => $exam->course
         ));
         $urlcategory = new moodle_url('/mod/emarking/print/printorders.php', array(
-            'id' => $categoryid
+            'category' => $categoryid
         ));
         // Url for the user profile of the person who requested the exam.
         $urlprofile = new moodle_url('/user/profile.php', array(
