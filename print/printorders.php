@@ -53,11 +53,11 @@ if ($statusicon < 1 || $statusicon > 2) {
     print_error(get_string("invalidstatus", "mod_emarking"));
 }
 
+$categories = core_course_category::make_categories_list('mod/emarking:printordersview');
+
 // if we don't have a category check the available categories and select the highest one
 if ($categories_id == [0]) {
     // If no category given we get all categories the user has access to
-
-    $categories = core_course_category::make_categories_list('mod/emarking:printordersview');
 
     # leave only top level ones
     $lowest_level = INF;
@@ -394,13 +394,59 @@ foreach ($categories_id as $index => $categoryid) {
 }
 
 if ($totalexams > 0) {
+
+    // creamos una variable para usar despues al crear la tabla para cambiar de categoria
+    $categories_input = "";
+
     if (count($categories_id) == 1) {
+        // si es que tenemos una sola categoria (estamos en una categoria especifica)
+        // mostramos tabs
         $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
         echo $OUTPUT->tabtree(emarking_printoders_tabs($category), $activetab);
+
+        // agregamos a la tabla que mostraremos despues un input especial para ver todo
+        $categories_input .= "<option value='0'> Todos </option>";
     }
-    echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
-    echo html_writer::tag("input", null, array("id" => "searchInput", "class"=>"mb-2"));
-    echo "<br>";
+    else {
+        // si no estamos en una categoria especifica agregamos boton de todos preseleccionado
+        $categories_input .= "<option value='0' selected> Todos </option>";
+    }
+
+    // revisamos todas las categorias y las agregamos al drop-down
+    foreach($categories as $index => $category) {
+        if (count($categories_id) == 1 && $categories_id[0] == $index) {
+            // si es la misma categoria en la que ya estamos la preseleccionamos
+            $categories_input .= "<option value='$index' selected> $category </option>";
+        }
+        else {
+            $categories_input .= "<option value='$index'> $category </option>";
+        }
+    }
+
+    // creamos la tabla, esta tiene el clasico searchInput (que necesita mejor busqueda)
+    // y tiene nuestro switcher de categoria
+    echo "
+    <table>
+        <tr>
+            <td>
+                <p> Filter: </p>
+            </td>
+            <td>
+                <input id='searchInput'>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p> Categories: </p>
+            </td>
+            <td>
+                <select id='category_select'>
+                    $categories_input
+                </select>
+            </td>
+        </tr>
+    </table>
+    ";
     echo html_writer::table($examstable); // Print the table.
     echo $OUTPUT->paging_bar(
         $examscount,
@@ -454,6 +500,14 @@ if ($CFG->emarking_usesms) {
     }).css({
         "color": "#C0C0C0"
     });
+
+    // category switcher
+    let category_switcher = document.getElementById("category_select");
+    category_switcher.addEventListener("change", function() {
+        var url = window.location.href.split('?')[0];
+        window.location = url + "?category=" + category_switcher.value;
+    });
+
 </script>
 <script type="text/javascript">
     var messages = {
