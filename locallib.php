@@ -970,29 +970,29 @@ function emarking_tabs($context, $cm, $emarking, $draft=null) {
  *            The category object
  * @return multitype:tabobject array of tabobjects
  */
-function emarking_printoders_tabs($category) {
+function emarking_printoders_tabs($categoryid) {
     $tabs = array();
     // Print orders.
     $tabs[] = new tabobject("printorders", new moodle_url("/mod/emarking/print/printorders.php", array(
-        "category" => $category->id,
+        "category" => $categoryid,
         "status" => 1
     )), get_string("printorders", 'mod_emarking'));
     // Print orders history.
     $tabs[] = new tabobject("printordershistory", new moodle_url("/mod/emarking/print/printorders.php", array(
-        "category" => $category->id,
+        "category" => $categoryid,
         "status" => 2
     )), get_string("records", 'mod_emarking'));
     // Statistics.
     $statstab = new tabobject("statistics", new moodle_url("/mod/emarking/reports/print.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("reports", 'mod_emarking'));
     // Print statistics.
     $statstab->subtree[] = new tabobject("print", new moodle_url("/mod/emarking/reports/print.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("statistics", 'mod_emarking'));
     // Print statistics details.
     $statstab->subtree[] = new tabobject("printdetails", new moodle_url("/mod/emarking/reports/printdetails.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("printdetails", 'mod_emarking'));
     $tabs[] = $statstab;
     return $tabs;

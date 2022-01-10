@@ -393,34 +393,43 @@ foreach ($categories_id as $index => $categoryid) {
     }
 }
 
-if ($totalexams > 0) {
+////
+// create category select to show later
+////
 
-    // creamos una variable para usar despues al crear la tabla para cambiar de categoria
-    $categories_input = "";
+// creamos una variable para usar despues al crear la tabla para cambiar de categoria
+$categories_input = "";
+
+if (count($categories_id) == 1) {
+    // si estamos en categoria especifica
+    // agregamos a la tabla que mostraremos despues un input especial para ver todo
+    $categories_input .= "<option value='0'> Todos </option>";
+} else {
+    // si no estamos en una categoria especifica agregamos boton de todos preseleccionado
+    $categories_input .= "<option value='0' selected> Todos </option>";
+}
+
+// revisamos todas las categorias y las agregamos al drop-down
+foreach($categories as $index => $category) {
+    if (count($categories_id) == 1 && $categories_id[0] == $index) {
+        // si es la misma categoria en la que ya estamos la preseleccionamos
+        $categories_input .= "<option value='$index' selected> $category </option>";
+    }
+    else {
+        $categories_input .= "<option value='$index'> $category </option>";
+    }
+}
+
+// display tabs, search, category select and print orders table
+if ($totalexams > 0) {
+    // if we have more than one exam we show the table
 
     if (count($categories_id) == 1) {
         // si es que tenemos una sola categoria (estamos en una categoria especifica)
         // mostramos tabs
+
         $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
-        echo $OUTPUT->tabtree(emarking_printoders_tabs($category), $activetab);
-
-        // agregamos a la tabla que mostraremos despues un input especial para ver todo
-        $categories_input .= "<option value='0'> Todos </option>";
-    }
-    else {
-        // si no estamos en una categoria especifica agregamos boton de todos preseleccionado
-        $categories_input .= "<option value='0' selected> Todos </option>";
-    }
-
-    // revisamos todas las categorias y las agregamos al drop-down
-    foreach($categories as $index => $category) {
-        if (count($categories_id) == 1 && $categories_id[0] == $index) {
-            // si es la misma categoria en la que ya estamos la preseleccionamos
-            $categories_input .= "<option value='$index' selected> $category </option>";
-        }
-        else {
-            $categories_input .= "<option value='$index'> $category </option>";
-        }
+        echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]), $activetab);
     }
 
     // creamos la tabla, esta tiene el clasico searchInput (que necesita mejor busqueda)
@@ -455,6 +464,20 @@ if ($totalexams > 0) {
         $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page='
     );
 } else {
+    echo "
+    <table>
+        <tr>
+            <td>
+                <p> Categories: </p>
+            </td>
+            <td>
+                <select id='category_select'>
+                    $categories_input
+                </select>
+            </td>
+        </tr>
+    </table>
+    ";
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
 
