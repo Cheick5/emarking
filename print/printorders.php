@@ -26,9 +26,16 @@
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
 require_once($CFG->dirroot . '/mod/emarking/locallib.php');
 require_once('locallib.php');
+
+// User must be logged in.
+require_login();
+if (isguestuser()) {
+    die();
+}
+
 global $DB, $CFG, $SCRIPT, $USER;
 // Category with courses.
-$categoryid = required_param('category', PARAM_INT);
+$categories_id = [optional_param('category', 0, PARAM_INT)];
 // Status icon.
 $statusicon = optional_param('status', 1, PARAM_INT);
 // Page action.
@@ -45,74 +52,32 @@ emarking_verify_logo();
 if ($statusicon < 1 || $statusicon > 2) {
     print_error(get_string("invalidstatus", "mod_emarking"));
 }
-// Validate category.
-if (! $category = $DB->get_record('course_categories', array(
-    'id' => $categoryid))) {
-    print_error(get_string('invalidcategoryid', 'mod_emarking'));
-}
-// We are in the category context.
-$context = context_coursecat::instance($categoryid);
-// User must be logged in.
-require_login();
-if (isguestuser()) {
-    die();
-}
-// And have printordersview capability.
-if (! has_capability('mod/emarking:printordersview', $context)) {
-    // TODO: Log invalid access to printorders.
-    print_error('Not allowed!');
-}
-$url = new moodle_url('/mod/emarking/print/printorders.php', array(
-    'category' => $categoryid));
-if($action === 'resetexam') {
-    if (! $examtoreset = $DB->get_record('emarking_exams', array(
-        'id' => $examid))) {
-        print_error(get_string('invalidexamid', 'mod_emarking'));
+
+$categories = core_course_category::make_categories_list('mod/emarking:printordersview');
+
+// if we don't have a category check the available categories and select the highest one
+if ($categories_id == [0]) {
+    // If no category given we get all categories the user has access to
+
+    # leave only top level ones
+    $lowest_level = INF;
+    $lowest_level_categories_id = [];
+
+    foreach($categories as $index => $category)
+    {
+        $level = Count(explode(" / ", $category));
+        if($level < $lowest_level) {
+            $lowest_level = $level;
+            $lowest_level_categories_id = [$index];
+        }
+        else if ($level == $lowest_level)
+        {
+            $lowest_level_categories_id[] = $index;
+        }
     }
-    $examtoreset->status = EMARKING_EXAM_UPLOADED;
-    $DB->update_record('emarking_exams', $examtoreset);
-    redirect($url, get_string('transactionsuccessfull', 'mod_emarking'));
-    die();
+    $categories_id = $lowest_level_categories_id;
 }
-// If the form is being downloaded.
-if ($examid && $downloadform) {
-    if (! $newexam = $DB->get_record("emarking_exams", array(
-        "id" => $examid))) {
-        print_error(get_string('invalidcategoryid', 'mod_emarking'));
-    }
-    if (! $course = $DB->get_record("course", array(
-        "id" => $newexam->course))) {
-        print_error(get_string('invalidcategoryid', 'mod_emarking'));
-    }
-    if (! $coursecat = $DB->get_record("course_categories", array(
-        "id" => $course->category))) {
-        print_error(get_string('invalidcategoryid', 'mod_emarking'));
-    }
-    $requestedbyuser = $DB->get_record("user", array(
-        "id" => $newexam->requestedby));
-    emarking_create_printform($context, $newexam, $USER, $requestedbyuser, $coursecat, $course);
-    die();
-}
-$ordersurl = new moodle_url('/mod/emarking/print/printorders.php',
-        array(
-            'category' => $categoryid,
-            'status' => $statusicon));
-$categoryurl = new moodle_url('/course/index.php', array(
-    'categoryid' => $categoryid));
-$pagetitle = $statusicon == 1 ? get_string('printorders', 'mod_emarking') : get_string('records', 'mod_emarking');
-$PAGE->set_context($context);
-$PAGE->set_url($url);
-$PAGE->requires->js('/mod/emarking/js/printorders.js');
-$PAGE->set_pagelayout('course');
-$PAGE->navbar->add($category->name, $categoryurl);
-$PAGE->navbar->add(get_string('printorders', 'mod_emarking'), $ordersurl);
-$PAGE->navbar->add($pagetitle);
-$PAGE->set_heading(get_site()->fullname);
-$PAGE->set_title(get_string('emarking', 'mod_emarking'));
-// Require jquery for modal.
-$PAGE->requires->jquery();
-$PAGE->requires->jquery_plugin('ui');
-$PAGE->requires->jquery_plugin('ui-css');
+
 // Creating tables and adding columns header.
 $examstable = new html_table();
 $examstable->head = array(
@@ -124,7 +89,8 @@ $examstable->head = array(
     get_string('cost', 'mod_emarking'),
     $statusicon == 1 ? get_string('sent', "mod_emarking") : get_string('examdateprinted', 'mod_emarking'),
     $statusicon == 1 ? ucfirst(get_string('pages', 'mod_emarking')) : get_string('actions'),
-    $statusicon == 1 ? get_string('actions') : get_string('printnotification', 'mod_emarking'));
+    $statusicon == 1 ? get_string('actions') : get_string('printnotification', 'mod_emarking')
+);
 $examstable->id = "fbody";
 $examstable->size = array(
     '15%',
@@ -135,7 +101,8 @@ $examstable->size = array(
     '10%',
     '7%',
     '7%',
-    '10%');
+    '10%'
+);
 $examstable->align = array(
     'left',
     'center',
@@ -145,34 +112,123 @@ $examstable->align = array(
     'center',
     'center',
     'center',
-    'center');
-$examstable->colclasses [1] = 'exams_examname';
-// Parameters for SQL calls.
-if ($statusicon == 1) {
-    $statuses = array(
+    'center'
+);
+$examstable->colclasses[1] = 'exams_examname';
+
+$totalexams = 0;
+
+foreach ($categories_id as $index => $categoryid) {
+
+    // Validate category.
+    if (!$category = $DB->get_record('course_categories', array('id' => $categoryid))) {
+        print_error(get_string('invalidcategoryid', 'mod_emarking'));
+    }
+    // We are in the category context.
+    $context = context_coursecat::instance($categoryid);
+    // And have printordersview capability.
+    if (!has_capability('mod/emarking:printordersview', $context)) {
+        // TODO: Log invalid access to printorders.
+        print_error('Not allowed!');
+    }
+    $url = new moodle_url('/mod/emarking/print/printorders.php', array(
+        'category' => $categoryid
+    ));
+    if ($action === 'resetexam') {
+        if (!$examtoreset = $DB->get_record('emarking_exams', array(
+            'id' => $examid
+        ))) {
+            print_error(get_string('invalidexamid', 'mod_emarking'));
+        }
+        $examtoreset->status = EMARKING_EXAM_UPLOADED;
+        $DB->update_record('emarking_exams', $examtoreset);
+        redirect($url, get_string('transactionsuccessfull', 'mod_emarking'));
+        die();
+    }
+    // If the form is being downloaded.
+    if ($examid && $downloadform) {
+        if (!$newexam = $DB->get_record("emarking_exams", array(
+            "id" => $examid
+        ))) {
+            print_error(get_string('invalidcategoryid', 'mod_emarking'));
+        }
+        if (!$course = $DB->get_record("course", array(
+            "id" => $newexam->course
+        ))) {
+            print_error(get_string('invalidcategoryid', 'mod_emarking'));
+        }
+        if (!$coursecat = $DB->get_record("course_categories", array(
+            "id" => $course->category
+        ))) {
+            print_error(get_string('invalidcategoryid', 'mod_emarking'));
+        }
+        $requestedbyuser = $DB->get_record("user", array(
+            "id" => $newexam->requestedby
+        ));
+        emarking_create_printform($context, $newexam, $USER, $requestedbyuser, $coursecat, $course);
+        die();
+    }
+    $ordersurl = new moodle_url(
+        '/mod/emarking/print/printorders.php',
+        array(
+            'category' => $categoryid,
+            'status' => $statusicon
+        )
+    );
+    $categoryurl = new moodle_url('/course/index.php', array(
+        'categoryid' => $categoryid
+    ));
+    if($index == 0) {
+        $pagetitle = $statusicon == 1 ? get_string('printorders', 'mod_emarking') : get_string('records', 'mod_emarking');
+        $PAGE->set_context($context);
+        $PAGE->set_url($url);
+        $PAGE->requires->js('/mod/emarking/js/printorders.js');
+        $PAGE->set_pagelayout('course');
+        $PAGE->navbar->add($category->name, $categoryurl);
+        $PAGE->navbar->add(get_string('printorders', 'mod_emarking'), $ordersurl);
+        $PAGE->navbar->add($pagetitle);
+        $PAGE->set_heading(get_site()->fullname);
+        $PAGE->set_title(get_string('emarking', 'mod_emarking'));
+        // Require jquery for modal.
+        $PAGE->requires->jquery();
+        $PAGE->requires->jquery_plugin('ui');
+        $PAGE->requires->jquery_plugin('ui-css');
+        echo $OUTPUT->header();
+        if(count($categories_id) > 1) {
+            echo $OUTPUT->heading($pagetitle);
+        }
+        else {
+            echo $OUTPUT->heading($pagetitle . ' ' . $category->name);
+        }
+    }
+
+    // Parameters for SQL calls.
+    if ($statusicon == 1) {
+        $statuses = array(
             EMARKING_EXAM_UPLOADED,
             EMARKING_EXAM_BEING_PROCESSED,
             EMARKING_EXAM_ERROR_PROCESSING,
             EMARKING_EXAM_PROCESSED
-    );
-} else {
-    $statuses = array(
+        );
+    } else {
+        $statuses = array(
             EMARKING_EXAM_SENT_TO_PRINT,
             EMARKING_EXAM_ERROR_PRINTING,
-            EMARKING_EXAM_PRINTED);
-}
-list($statussql, $params) = $DB->get_in_or_equal($statuses);
-$order = $statusicon == 1 ? "e.examdate asc, c.shortname ASC" : "e.examdate desc, c.shortname ASC";
-list($childrensql, $childrenparams) = $DB->get_in_or_equal(emarking_get_categories_childs($categoryid));
-$childrenparams = array($categoryid, $categoryid);
-$sqlcount = " SELECT count(*)
- FROM {emarking_exams} as e
-INNER JOIN {course} as c ON (e.course = c.id)
-INNER JOIN {course_categories} as cc ON (cc.id = c.category)
-WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.status {$statussql}";
-// Get the count so we can use pagination.
-$examscount = $DB->count_records_sql($sqlcount, $params);
-$sql = "SELECT e.*,
+            EMARKING_EXAM_PRINTED
+        );
+    }
+    list($statussql, $params) = $DB->get_in_or_equal($statuses);
+    $order = $statusicon == 1 ? "e.examdate asc, c.shortname ASC" : "e.examdate desc, c.shortname ASC";
+    list($childrensql, $childrenparams) = $DB->get_in_or_equal(emarking_get_categories_childs($categoryid));
+    $childrenparams = array($categoryid, $categoryid);
+    $sqlcount = "   SELECT count(*)
+                    FROM {emarking_exams} as e
+                    INNER JOIN {course} as c ON (e.course = c.id)
+                    INNER JOIN {course_categories} as cc ON (cc.id = c.category)
+                    WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.status {$statussql}";
+    // Get the count so we can use pagination.
+    $examscount = $DB->count_records_sql($sqlcount, $params);
+    $sql = "SELECT e.*,
 			c.id as courseid,
 			c.fullname as coursefullname,
 			u.id as userid,
@@ -185,212 +241,334 @@ $sql = "SELECT e.*,
 		INNER JOIN {course_categories} as cc ON (cc.id = c.category)
 		WHERE (cc.path LIKE '%/$categoryid' OR cc.path LIKE '%/$categoryid/%') AND e.status {$statussql}
 		ORDER BY " . $order;
-// Getting all print orders.
-$exams = $DB->get_records_sql($sql, $params, $page * $perpage, ($page + 1) * $perpage); // Status = 1 means still not downloaded.
-$currentdate = time();
-$current = 0;
-foreach ($exams as $exam) {
-    // Url for the course.
-    $urlcourse = new moodle_url('/course/view.php', array(
-        'id' => $exam->course));
-    // Url for the user profile of the person who requested the exam.
-    $urlprofile = new moodle_url('/user/profile.php', array(
-        'id' => $exam->userid));
-    // Calculate the total pages and pages to print for this exam.
-    $pagestoprint = emarking_exam_total_pages_to_print($exam);
-    $actions = html_writer::start_tag("div", array(
-        "class" => "printactions"));
-    // Download exam link.
-    if($exam->status == EMARKING_EXAM_PROCESSED) {
-        $actions .= html_writer::div(
-            $OUTPUT->pix_icon("i/down", $exam->id, null, 
+    // Getting all print orders.
+    $exams = $DB->get_records_sql($sql, $params, $page * $perpage, ($page + 1) * $perpage); // Status = 1 means still not downloaded.
+    $currentdate = time();
+    $current = 0;
+    $totalexams += count($exams);
+    foreach ($exams as $exam) {
+        // Url for the course.
+        $urlcourse = new moodle_url('/course/view.php', array(
+            'id' => $exam->course
+        ));
+        $urlcategory = new moodle_url('/mod/emarking/print/printorders.php', array(
+            'category' => $categoryid
+        ));
+        // Url for the user profile of the person who requested the exam.
+        $urlprofile = new moodle_url('/user/profile.php', array(
+            'id' => $exam->userid
+        ));
+        // Calculate the total pages and pages to print for this exam.
+        $pagestoprint = emarking_exam_total_pages_to_print($exam);
+        $actions = html_writer::start_tag("div", array(
+            "class" => "printactions"
+        ));
+        // Download exam link.
+        if ($exam->status == EMARKING_EXAM_PROCESSED) {
+            $actions .= html_writer::div(
+                $OUTPUT->pix_icon(
+                    "i/down",
+                    $exam->id,
+                    null,
                     array(
-                    		"id" => $exam->id,
+                        "id" => $exam->id,
                         "examid" => $exam->id,
-                        "class" => "downloademarking"))); 
-    } else if($exam->status == EMARKING_EXAM_UPLOADED) {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon("i/scheduled", get_string('examgenerationscheduled', 'mod_emarking'), null));
-    } else if($exam->status == EMARKING_EXAM_BEING_PROCESSED) {
-        if(is_siteadmin()) {
-            $actions .= $OUTPUT->action_icon(
-                new moodle_url('/mod/emarking/print/printorders.php',
-                    array(
-                        'category' => $categoryid,
-                        'examid' => $exam->id,
-                        'action' => 'resetexam')),
-                new pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking')));
-        } else {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'), null));
+                        "class" => "downloademarking"
+                    )
+                )
+            );
+        } else if ($exam->status == EMARKING_EXAM_UPLOADED) {
+            $actions .= html_writer::div(
+                $OUTPUT->pix_icon("i/scheduled", get_string('examgenerationscheduled', 'mod_emarking'), null)
+            );
+        } else if ($exam->status == EMARKING_EXAM_BEING_PROCESSED) {
+            if (is_siteadmin()) {
+                $actions .= $OUTPUT->action_icon(
+                    new moodle_url(
+                        '/mod/emarking/print/printorders.php',
+                        array(
+                            'category' => $categoryid,
+                            'examid' => $exam->id,
+                            'action' => 'resetexam'
+                        )
+                    ),
+                    new pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'))
+                );
+            } else {
+                $actions .= html_writer::div(
+                    $OUTPUT->pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'), null)
+                );
+            }
+        } else if ($exam->status == EMARKING_EXAM_ERROR_PROCESSING) {
+            if (is_siteadmin()) {
+                $actions .= $OUTPUT->action_icon(
+                    new moodle_url(
+                        '/mod/emarking/print/printorders.php',
+                        array(
+                            'category' => $categoryid,
+                            'examid' => $exam->id,
+                            'action' => 'resetexam'
+                        )
+                    ),
+                    new pix_icon('i/risk_xss', get_string('examgenerationerrorprocessing', 'mod_emarking'))
+                );
+            } else {
+                $actions .= html_writer::div(
+                    $OUTPUT->pix_icon('i/risk_xss', get_string('examgenerationerrorprocessing', 'mod_emarking'), null)
+                );
+            }
+        } else if ($exam->status == EMARKING_EXAM_SENT_TO_PRINT) {
+            $actions .= html_writer::div(
+                $OUTPUT->pix_icon("i/grade_correct", get_string('examsentoprint', 'mod_emarking'), null)
+            );
+        } else if ($exam->status == EMARKING_EXAM_ERROR_PRINTING) {
+            $actions .= html_writer::div(
+                $OUTPUT->pix_icon("i/risk_xss", get_string('errorprinting', 'mod_emarking'), null)
+            );
+        } else if ($exam->status == EMARKING_EXAM_PRINTED) {
+            $actions .= html_writer::div(
+                $OUTPUT->pix_icon("i/grade_correct", get_string('examprinted', 'mod_emarking'), null)
+            );
         }
-    } else if($exam->status == EMARKING_EXAM_ERROR_PROCESSING) {
-        if(is_siteadmin()) {
-            $actions .= $OUTPUT->action_icon(
-                new moodle_url('/mod/emarking/print/printorders.php',
-                    array(
-                        'category' => $categoryid,
-                        'examid' => $exam->id,
-                        'action' => 'resetexam')),
-                new pix_icon('i/risk_xss', get_string('examgenerationerrorprocessing', 'mod_emarking')));
-        } else {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon('i/risk_xss', get_string('examgenerationerrorprocessing', 'mod_emarking'), null));
+        // Print directly.
+        if ($CFG->emarking_enableprinting) {
+            $urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
+                'exam' => $exam->id
+            ));
+            $actions .= html_writer::div(
+                $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking")))
+            );
         }
-    } else if($exam->status == EMARKING_EXAM_SENT_TO_PRINT) {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon("i/grade_correct", get_string('examsentoprint', 'mod_emarking'), null));
-    } else if($exam->status == EMARKING_EXAM_ERROR_PRINTING) {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon("i/risk_xss", get_string('errorprinting', 'mod_emarking'), null));
-    } else if($exam->status == EMARKING_EXAM_PRINTED) {
-        $actions .= html_writer::div(
-                $OUTPUT->pix_icon("i/grade_correct", get_string('examprinted', 'mod_emarking'), null));
-    }
-    // Print directly.
-    if ($CFG->emarking_enableprinting) {
-        $urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
-            'exam' => $exam->id));
-        $actions .= html_writer::div(
-                $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking"))));
-    }
-    // Download print form.
-    $urldownloadform = new moodle_url('/mod/emarking/print/printorders.php',
+        // Download print form.
+        $urldownloadform = new moodle_url(
+            '/mod/emarking/print/printorders.php',
             array(
                 'category' => $categoryid,
                 'examid' => $exam->id,
-                'downloadform' => 'true'));
-    $actions .= html_writer::div(
-            $OUTPUT->action_icon($urldownloadform, new pix_icon("i/log", get_string("downloadform", "mod_emarking"))));
-    // Change cost configuration.
-    $urlcost = new moodle_url('/mod/emarking/reports/exammodification.php',
+                'downloadform' => 'true'
+            )
+        );
+        $actions .= html_writer::div(
+            $OUTPUT->action_icon($urldownloadform, new pix_icon("i/log", get_string("downloadform", "mod_emarking")))
+        );
+        // Change cost configuration.
+        $urlcost = new moodle_url(
+            '/mod/emarking/reports/exammodification.php',
             array(
                 'exam' => $exam->id,
                 'category' => $categoryid,
-                'status' => $statusicon));
-    $actions .= html_writer::end_tag("div");
-    // Calculating date differences to identify exams that are late, are for today and so on.
-    if (date("d/m/y", $exam->examdate) === date("d/m/y", $currentdate)) {
-        $examstable->rowclasses [$current] = 'examtoday';
-    } else if ($currentdate < $exam->examdate) {
-        $examstable->rowclasses [$current] = 'examisok';
-    } else {
-        $examstable->rowclasses [$current] = 'examislate';
-    }
-    $notification = $exam->notified ? $OUTPUT->pix_icon('t/approve', get_string('printnotificationsent', 'mod_emarking')) :
+                'status' => $statusicon
+            )
+        );
+        $actions .= html_writer::end_tag("div");
+        // Calculating date differences to identify exams that are late, are for today and so on.
+        if (date("d/m/y", $exam->examdate) === date("d/m/y", $currentdate)) {
+            $examstable->rowclasses[$current] = 'examtoday';
+        } else if ($currentdate < $exam->examdate) {
+            $examstable->rowclasses[$current] = 'examisok';
+        } else {
+            $examstable->rowclasses[$current] = 'examislate';
+        }
+        $notification = $exam->notified ? $OUTPUT->pix_icon('t/approve', get_string('printnotificationsent', 'mod_emarking')) :
             '<a href="' . $CFG->wwwroot . '/mod/emarking/print/sendprintnotification.php?id=' . $exam->id . '">' .
-             $OUTPUT->pix_icon('i/email', get_string('printsendnotification', 'mod_emarking')) . '</a>';
-    $enrolments = html_writer::start_tag("div", array(
-        "class" => "printdetails"));
-    $enrolments .= emarking_enrolments_div($exam);
-    $enrolments .= html_writer::end_tag("div");
-    $examstable->data [] = array(
-        date("l jS F g:ia", $exam->examdate),
-        $exam->name,
-        $OUTPUT->action_link($urlcourse, $exam->coursefullname),
-        $exam->category . '<br/>' . $enrolments,
-        $OUTPUT->action_link($urlprofile, $exam->userfullname),
-        '$' . number_format($exam->cost) .
-                 $OUTPUT->action_icon($urlcost, new pix_icon("i/edit", get_string("downloadform", "mod_emarking"))),
-                $statusicon == 1 ? emarking_time_ago($exam->timecreated) : emarking_time_ago($exam->printdate),
-                $statusicon == 1 ? $pagestoprint : $actions,
-                $statusicon == 1 ? $actions : $notification);
-    $current ++;
+            $OUTPUT->pix_icon('i/email', get_string('printsendnotification', 'mod_emarking')) . '</a>';
+        $enrolments = html_writer::start_tag("div", array(
+            "class" => "printdetails"
+        ));
+        $enrolments .= emarking_enrolments_div($exam);
+        $enrolments .= html_writer::end_tag("div");
+        $examstable->data[] = array(
+            date("l jS F g:ia", $exam->examdate),
+            $exam->name,
+            $OUTPUT->action_link($urlcourse, $exam->coursefullname),
+            $OUTPUT->action_link($urlcategory,  $exam->category) . '<br/>' . $enrolments,
+            $OUTPUT->action_link($urlprofile, $exam->userfullname),
+            '$' . number_format($exam->cost) .
+                $OUTPUT->action_icon($urlcost, new pix_icon("i/edit", get_string("downloadform", "mod_emarking"))),
+            $statusicon == 1 ? emarking_time_ago($exam->timecreated) : emarking_time_ago($exam->printdate),
+            $statusicon == 1 ? $pagestoprint : $actions,
+            $statusicon == 1 ? $actions : $notification
+        );
+        $current++;
+    }
 }
-echo $OUTPUT->header();
-echo $OUTPUT->heading($pagetitle . ' ' . $category->name);
-$activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
-echo $OUTPUT->tabtree(emarking_printoders_tabs($category), $activetab);
-if (count($exams) > 0) {
-    echo core_text::strtotitle(get_string("filter")) . "&nbsp;&nbsp;";
-    echo html_writer::tag("input", null, array("id"=>"searchInput"));
-    echo html_writer::table($examstable); // Print the table.
-    echo $OUTPUT->paging_bar($examscount, $page, $perpage,
-            $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page=');
+
+////
+// create category select to show later
+////
+
+// creamos una variable para usar despues al crear la tabla para cambiar de categoria
+$categories_input = "";
+
+if (count($categories_id) == 1) {
+    // si estamos en categoria especifica
+    // agregamos a la tabla que mostraremos despues un input especial para ver todo
+    $categories_input .= "<option value='0'> Todos </option>";
 } else {
+    // si no estamos en una categoria especifica agregamos boton de todos preseleccionado
+    $categories_input .= "<option value='0' selected> Todos </option>";
+}
+
+// revisamos todas las categorias y las agregamos al drop-down
+foreach($categories as $index => $category) {
+    if (count($categories_id) == 1 && $categories_id[0] == $index) {
+        // si es la misma categoria en la que ya estamos la preseleccionamos
+        $categories_input .= "<option value='$index' selected> $category </option>";
+    }
+    else {
+        $categories_input .= "<option value='$index'> $category </option>";
+    }
+}
+
+// display tabs, search, category select and print orders table
+if ($totalexams > 0) {
+    // if we have more than one exam we show the table
+
+    if (count($categories_id) == 1) {
+        // si es que tenemos una sola categoria (estamos en una categoria especifica)
+        // mostramos tabs
+
+        $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
+        echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]), $activetab);
+    }
+
+    // creamos la tabla, esta tiene el clasico searchInput (que necesita mejor busqueda)
+    // y tiene nuestro switcher de categoria
+    echo "
+    <table>
+        <tr>
+            <td>
+                <p> Filter: </p>
+            </td>
+            <td>
+                <input id='searchInput'>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p> Categories: </p>
+            </td>
+            <td>
+                <select id='category_select'>
+                    $categories_input
+                </select>
+            </td>
+        </tr>
+    </table>
+    ";
+    echo html_writer::table($examstable); // Print the table.
+    echo $OUTPUT->paging_bar(
+        $examscount,
+        $page,
+        $perpage,
+        $CFG->wwwroot . '/mod/emarking/print/printorders.php?category=' . $categoryid . '&status=' . $statusicon . '&page='
+    );
+} else {
+    echo "
+    <table>
+        <tr>
+            <td>
+                <p> Categories: </p>
+            </td>
+            <td>
+                <select id='category_select'>
+                    $categories_input
+                </select>
+            </td>
+        </tr>
+    </table>
+    ";
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
+
 $downloadurl = new moodle_url('/mod/emarking/print/download.php');
 if ($CFG->emarking_usesms) {
     $message = get_string('smsinstructions', 'mod_emarking', $USER);
 } else {
     $message = get_string('emailinstructions', 'mod_emarking', $USER);
 }
+
 ?>
 <script type="text/javascript">
-$("#searchInput").keyup(function () {
-    //split the current value of searchInput
-    var data = this.value.split(" ");
-    //create a jquery object of the rows
-    var jo = $("#fbody").find("tbody").find("tr");
-    if (this.value == "") {
-        jo.show();
-        return;
-    }
-    //hide all the rows
-    jo.hide();
-
-    //Recusively filter the jquery object to get results.
-    jo.filter(function (i, v) {
-        var $t = $(this);
-        for (var d = 0; d < data.length; ++d) {
-            if ($t.is(":contains('" + data[d] + "')")) {
-                return true;
-            }
+    $("#searchInput").keyup(function() {
+        //split the current value of searchInput
+        var data = this.value.split(" ");
+        //create a jquery object of the rows
+        var jo = $("#fbody").find("tbody").find("tr");
+        if (this.value == "") {
+            jo.show();
+            return;
         }
-        return false;
-    })
-    //show the rows that match.
-    .show();
-}).focus(function () {
-    this.value = "";
-    $(this).css({
-        "color": "black"
+        //hide all the rows
+        jo.hide();
+
+        //Recusively filter the jquery object to get results.
+        jo.filter(function(i, v) {
+                var $t = $(this);
+                for (var d = 0; d < data.length; ++d) {
+                    if ($t.is(":contains('" + data[d] + "')")) {
+                        return true;
+                    }
+                }
+                return false;
+            })
+            //show the rows that match.
+            .show();
+    }).focus(function() {
+        this.value = "";
+        $(this).css({
+            "color": "black"
+        });
+        $(this).unbind('focus');
+    }).css({
+        "color": "#C0C0C0"
     });
-    $(this).unbind('focus');
-}).css({
-    "color": "#C0C0C0"
-});
+
+    // category switcher
+    let category_switcher = document.getElementById("category_select");
+    category_switcher.addEventListener("change", function() {
+        var url = window.location.href.split('?')[0];
+        window.location = url + "?category=" + category_switcher.value;
+    });
+
 </script>
 <script type="text/javascript">
     var messages = {
-		downloadexam: "<?php echo get_string("downloadexam", "mod_emarking") ?>",
-		download: "<?php echo get_string("download", "mod_emarking") ?>",
-		cancel: "<?php echo get_string("cancel", "mod_emarking") ?>",
-		resendcode: "<?php echo get_string("resendcode", "mod_emarking") ?>",
-		timeout: "<?php echo get_string("smsservertimeout", "mod_emarking") ?>",
-		servererror: "<?php echo get_string("smsservererror", "mod_emarking") ?>"
+        downloadexam: "<?php echo get_string("downloadexam", "mod_emarking") ?>",
+        download: "<?php echo get_string("download", "mod_emarking") ?>",
+        cancel: "<?php echo get_string("cancel", "mod_emarking") ?>",
+        resendcode: "<?php echo get_string("resendcode", "mod_emarking") ?>",
+        timeout: "<?php echo get_string("smsservertimeout", "mod_emarking") ?>",
+        servererror: "<?php echo get_string("smsservererror", "mod_emarking") ?>"
     };
-	var wwwroot = "<?php echo $CFG->wwwroot ?>";
-	var downloadurl = "<?php echo $downloadurl ?>";
-	var examid = "<?php echo $examid?>";
-	var sessionkey = "<?php echo sesskey() ?>";
-	var multipdfs = "0";
-	var incourse = "0";
+    var wwwroot = "<?php echo $CFG->wwwroot ?>";
+    var downloadurl = "<?php echo $downloadurl ?>";
+    var examid = "<?php echo $examid ?>";
+    var sessionkey = "<?php echo sesskey() ?>";
+    var multipdfs = "0";
+    var incourse = "0";
 </script>
 <div id="loadingPanel"></div>
 <!-- The panel DIV goes at the end to make sure it is loaded before javascript starts -->
 <div id="panelContent">
-	<div class="yui3-widget-bd">
-		<form>
-			<fieldset>
-				<p>
-					<label for="id"><?php echo $message ?></label><br /> <input
-						type="text" name="sms" id="sms" placeholder=""> <select
-						onchange="change(this.value);">
-						<option value="0"><?php echo get_string("singlepdf", "mod_emarking") ?></option>
-						<option value="1"><?php echo get_string("multiplepdfs", "mod_emarking") ?></option>
-					</select>
-				</p>
-			</fieldset>
-		</form>
-	</div>
+    <div class="yui3-widget-bd">
+        <form>
+            <fieldset>
+                <p>
+                    <label for="id"><?php echo $message ?></label><br /> <input type="text" name="sms" id="sms" placeholder=""> <select onchange="change(this.value);">
+                        <option value="0"><?php echo get_string("singlepdf", "mod_emarking") ?></option>
+                        <option value="1"><?php echo get_string("multiplepdfs", "mod_emarking") ?></option>
+                    </select>
+                </p>
+            </fieldset>
+        </form>
+    </div>
 </div>
 <?php
 echo $OUTPUT->footer();
 ?>
 <script type="text/javascript">
-	function change(e){
-			multipdfs = e;
-		}
+    function change(e) {
+        multipdfs = e;
+    }
 </script>

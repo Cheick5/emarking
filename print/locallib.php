@@ -86,9 +86,7 @@ function emarking_generate_personalized_exams($category = NULL) {
             $filedir = $CFG->dataroot . "/temp/emarking/$exam->id";
             emarking_initialize_directory($filedir, true);
         } catch (Exception $e) {
-var_dump($e);
-die();           
- $message = 'exception printing';
+            $message = 'exception printing';
             // Update the exam status to error.
             $exam->status = EMARKING_EXAM_ERROR_PROCESSING;
             $DB->update_record('emarking_exams', $exam);
@@ -234,7 +232,7 @@ function emarking_get_student_picture($student, $userimgdir) {
         'filearea' => 'icon',
         'filename' => 'f1.png'
     ));
-    if ($imgfile) {
+    if ($imgfile && $CFG->emarking_includeuserpicture) {
         return emarking_get_path_from_hash($userimgdir, $imgfile->pathnamehash, "u" . $student->id, true);
     } else {
         return $CFG->dirroot . "/pix/u/f1.png";
@@ -329,7 +327,7 @@ function emarking_send_processanswers_notification($emarking, $course) {
         $eventdata->smallmessage = $postsubject;
         $eventdata->notification = 1;
         // $eventdata->courseid = $course->id;
-        //message_send($eventdata);
+        message_send($eventdata);
     }
     // Save the date of the digitization.
     $emarking->digitizingdate = time();
@@ -2173,7 +2171,7 @@ function emarking_draw_header($pdf, $stinfo, $examname, $pagenumber, $fileimgpat
     }
     list ($img, $imgrotated) = emarking_create_qr_image($fileimgpath, $qrstring, $stinfo, $pagenumber);
     $pdf->Image($img, 176, 3, 34);
-    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == 1) {
+    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == true) {
         $pdf->Image($imgrotated, 0, $pdf->getPageHeight() - 35, 34);
     }
     // Delete QR images.
@@ -2201,9 +2199,12 @@ function emarking_create_qr_image($fileimg, $qrstring, $stinfo, $i) {
     QRcode::png($qrstring, $img);
     // Same image but rotated.
     QRcode::png($qrstring . "-R", $imgrotated);
-    $gdimg = imagecreatefrompng($imgrotated);
-    $rotated = imagerotate($gdimg, 180, 0);
-    imagepng($rotated, $imgrotated);
+
+    $imagick = new Imagick();
+    $imagick->readImage($imgrotated);
+    $imagick->rotateimage('#00000000', 180);
+    $imagick->writeImage($imgrotated);
+
     return array(
         $img,
         $imgrotated

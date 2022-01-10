@@ -350,6 +350,7 @@ $string ['examgenerationinprogress'] = 'Exam generation in progress';
 $string ['examgenerationerrorprocessing'] = 'Error processing';
 $string ['examgenerationscheduled'] = 'Exam generation scheduled';
 $string ['personalizedexamsgeneration'] = 'Personalized exams generation';
+$string ['printordersrange'] = '???';
 // EMARKING UPLOAD ANSWERS.
 $string ['confirmprocess'] = 'Confirm process';
 $string ['confirmprocessfile'] = 'You are about to process file {$a->file} as student submissions for assignment {$a->assignment}.<br> This will delete any previous submissions from students on that assignment. Are you sure?';

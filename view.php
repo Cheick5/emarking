@@ -839,17 +839,14 @@ function emarking_get_actions($d, $emarking, $context, $draft, $usercangrade, $i
         'height' => 600
     )));
 
+    /* Actions: mark exam and view exam depending on if the user can grade, emarking status*/
+    //Not showing actions
     if ($emarking->type == EMARKING_TYPE_PEER_REVIEW && $owndraft && $d->status < EMARKING_STATUS_PUBLISHED) {
         return null;
     }
 
-    // EMarking button.
-    //this button can be either mark or view depending on if the user can grade
-    if ($d->status >= EMARKING_STATUS_SUBMITTED && (
-        $usercangrade || $issupervisor || (
-            $owndraft && $d->status >= EMARKING_STATUS_PUBLISHED
-        )
-    )) {
+    //Showing actions
+    if(($usercangrade && $d->status >= EMARKING_STATUS_SUBMITTED && $numcriteria > 0) || $d->status >= EMARKING_STATUS_PUBLISHED || ($emarking->type == EMARKING_TYPE_PRINT_SCAN && $d->status >= EMARKING_STATUS_SUBMITTED)) {
         $actionsarray[] = $markactionlink;
     }
 
