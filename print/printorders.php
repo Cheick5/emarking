@@ -57,8 +57,6 @@ if ($statusicon < 1 || $statusicon > 2) {
 if ($categories_id == [0]) {
     // If no category given we get all categories the user has access to
 
-    echo ("DEBUG");
-
     $categories = core_course_category::make_categories_list('mod/emarking:printordersview');
 
     # leave only top level ones
