@@ -478,7 +478,6 @@ if ($totalexams > 0) {
         </tr>
     </table>
     ";
-    echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]));
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
 
