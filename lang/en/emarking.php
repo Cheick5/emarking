@@ -442,6 +442,7 @@ $string ['validcostcenter'] = 'Must enter numeric value';
 $string ['validcostcenter_help'] = 'Must enter valid cost center number';
 $string ['categoryselection_help'] = 'Please select the category where you want to add/modify the cost';
 $string ['categoryselection'] = 'Chose a category';
+$string ['categories'] = 'Categories'; 
 $string ['downloadexcel'] = 'Download excel';
 $string ['costbyperiod'] = 'Cost by period';
 $string ['categorynavegation'] = 'Category navegation';
@@ -839,7 +840,7 @@ $string['filters'] = 'Filters';
 // Cycle
 $string['summary'] = 'Summary';
 $string['emarkingsummary'] = 'Emarking Summary';
-$string['filters'] = 'Filters';
+$string['filter'] = 'filter';
 $string['days'] = 'Days';
 $string['dayshoursstrong'] = '<strong>Days/Hours</strong>';
 $string['emarkingname'] = 'Emarking Name';

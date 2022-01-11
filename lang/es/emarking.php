@@ -439,6 +439,7 @@ $string ['categoryselection_help'] = 'Selecciona la categoria que deseas agregar
 $string ['categoryselect_help'] = 'Selecciona la categoria a la que deseas ir';
 $string ['categoryselect'] = 'Elegir una categoria';
 $string ['categoryselection'] = 'Elegir una categoria';
+$string ['categories'] = 'Categorias';
 $string ['downloadexcel'] = 'Descargar excel';
 $string ['costbyperiod'] = 'Costos por periodo';
 $string ['categorynavegation'] = 'Navegación por categoría';
@@ -846,6 +847,7 @@ $string['filters'] = 'Filtros';
 // Cycle
 $string['summary'] = 'Resumen';
 $string['emarkingsummary'] = 'Resumen Emarking';
+$string['filter'] = 'Filtro';
 $string['days'] = 'Días';
 $string['dayshoursstrong'] = '<strong>Días/Horas</strong>';
 $string['emarkingname'] = 'Nombre del Emarking';
