@@ -438,7 +438,7 @@ if ($totalexams > 0) {
     <table>
         <tr>
             <td>
-                <p> Filter: </p>
+                <p>". get_string('filter', 'mod_emarking').": </p>
             </td>
             <td>
                 <input id='searchInput'>
@@ -446,7 +446,7 @@ if ($totalexams > 0) {
         </tr>
         <tr>
             <td>
-                <p> Categories: </p>
+                <p>". get_string('categories', 'mod_emarking').": </p>
             </td>
             <td>
                 <select id='category_select'>
@@ -468,7 +468,7 @@ if ($totalexams > 0) {
     <table>
         <tr>
             <td>
-                <p> Categories: </p>
+            <p>". get_string('categories', 'mod_emarking').": </p>
             </td>
             <td>
                 <select id='category_select'>
@@ -478,6 +478,7 @@ if ($totalexams > 0) {
         </tr>
     </table>
     ";
+    echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]));
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
 
