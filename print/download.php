@@ -71,6 +71,12 @@ if (! $course = $DB->get_record("course", array(
     print_error(get_string("invalidcourseid", "mod_emarking"));
     die();
 }
+// Add printdate to database
+if ($exam = $DB->get_record("emarking_exams", array(
+    "id" => $examid))){
+    $exam->printdate = time();
+    $DB->update_record('emarking_exams', $exam);
+}   
 $contextcat = context_coursecat::instance($course->category);
 $contextcourse = context_course::instance($course->id);
 $url = new moodle_url("/mod/emarking/print/download.php",

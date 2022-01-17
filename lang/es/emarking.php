@@ -209,6 +209,7 @@ $string ['downloadexam'] = 'Descargar prueba';
 $string ['reprocessexam'] = 'Reprocesar prueba';
 $string ['comment_help'] = 'Comentario para hacer llegar a la impresión.';
 $string ['uploaded'] = 'Subida';
+$string ['examsentoprint'] = 'Prueba enviada a impresión';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (mucho peor de lo que merecía)';
 $string ['er-3'] = '-3';
@@ -347,6 +348,7 @@ $string ['printserver'] = 'Servidor de impresiones (número IP)';
 $string ['printserver_help'] = 'Hace que Moodle imprima las evaluaciones de E-Marking en un servidor de impresiones cups (dejar en blanco si no utiliza un servidor de impresiones).';
 $string ['examgenerationinprogress'] = 'Generación de PDF en curso. Vuelva más tarde.';
 $string ['personalizedexamsgeneration'] = 'Generación de pruebas personalizadas';
+$string ['printordersrange'] = '???';
 // EMARKING UPLOAD ANSWERS.
 $string ['confirmprocess'] = 'Confirmar proceso';
 $string ['confirmprocessfile'] = 'You are about to process file {$a->file} as student submissions for assignment {$a->assignment}.<br> This will delete any previous submissions from students on that assignment. Are you sure?';
@@ -437,6 +439,7 @@ $string ['categoryselection_help'] = 'Selecciona la categoria que deseas agregar
 $string ['categoryselect_help'] = 'Selecciona la categoria a la que deseas ir';
 $string ['categoryselect'] = 'Elegir una categoria';
 $string ['categoryselection'] = 'Elegir una categoria';
+$string ['categories'] = 'Categorías';
 $string ['downloadexcel'] = 'Descargar excel';
 $string ['costbyperiod'] = 'Costos por periodo';
 $string ['categorynavegation'] = 'Navegación por categoría';
@@ -844,6 +847,7 @@ $string['filters'] = 'Filtros';
 // Cycle
 $string['summary'] = 'Resumen';
 $string['emarkingsummary'] = 'Resumen Emarking';
+$string['filter'] = 'Filtro';
 $string['days'] = 'Días';
 $string['dayshoursstrong'] = '<strong>Días/Horas</strong>';
 $string['emarkingname'] = 'Nombre del Emarking';

@@ -209,6 +209,7 @@ $string ['downloadexam'] = 'Download exam';
 $string ['reprocessexam'] = 'Reprocess exam';
 $string ['comment_help'] = 'Comment for the printing staff.';
 $string ['uploaded'] = 'Uploaded';
+$string ['examsentoprint'] = 'Exam sent to print';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (much worse than I deserved)';
 $string ['er-3'] = '-3';
@@ -349,6 +350,7 @@ $string ['examgenerationinprogress'] = 'Exam generation in progress';
 $string ['examgenerationerrorprocessing'] = 'Error processing';
 $string ['examgenerationscheduled'] = 'Exam generation scheduled';
 $string ['personalizedexamsgeneration'] = 'Personalized exams generation';
+$string ['printordersrange'] = '???';
 // EMARKING UPLOAD ANSWERS.
 $string ['confirmprocess'] = 'Confirm process';
 $string ['confirmprocessfile'] = 'You are about to process file {$a->file} as student submissions for assignment {$a->assignment}.<br> This will delete any previous submissions from students on that assignment. Are you sure?';
@@ -440,6 +442,7 @@ $string ['validcostcenter'] = 'Must enter numeric value';
 $string ['validcostcenter_help'] = 'Must enter valid cost center number';
 $string ['categoryselection_help'] = 'Please select the category where you want to add/modify the cost';
 $string ['categoryselection'] = 'Chose a category';
+$string ['categories'] = 'Categories'; 
 $string ['downloadexcel'] = 'Download excel';
 $string ['costbyperiod'] = 'Cost by period';
 $string ['categorynavegation'] = 'Category navegation';
@@ -837,7 +840,7 @@ $string['filters'] = 'Filters';
 // Cycle
 $string['summary'] = 'Summary';
 $string['emarkingsummary'] = 'Emarking Summary';
-$string['filters'] = 'Filters';
+$string['filter'] = 'filter';
 $string['days'] = 'Days';
 $string['dayshoursstrong'] = '<strong>Days/Hours</strong>';
 $string['emarkingname'] = 'Emarking Name';

@@ -64,7 +64,7 @@ require_login();
 $pagenumber = optional_param('pag', 1, PARAM_INT);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('statisticstotals', 'mod_emarking'));
-echo $OUTPUT->tabtree(emarking_printoders_tabs($category), "printdetails");
+echo $OUTPUT->tabtree(emarking_printoders_tabs($categoryid), "printdetails");
 $form = new emarking_dates_form(null,
         array(
             'period' => $period,
