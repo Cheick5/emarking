@@ -420,17 +420,17 @@ foreach($categories as $index => $category) {
     }
 }
 
-// display tabs, search, category select and print orders table
+if (count($categories_id) == 1) {
+    // si es que tenemos una sola categoria (estamos en una categoria especifica)
+    // mostramos tabs
+
+    $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
+    echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]), $activetab);
+}
+
 if ($totalexams > 0) {
+    // display tabs, search, category select and print orders table
     // if we have more than one exam we show the table
-
-    if (count($categories_id) == 1) {
-        // si es que tenemos una sola categoria (estamos en una categoria especifica)
-        // mostramos tabs
-
-        $activetab = $statusicon == 1 ? 'printorders' : 'printordershistory';
-        echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]), $activetab);
-    }
 
     // creamos la tabla, esta tiene el clasico searchInput (que necesita mejor busqueda)
     // y tiene nuestro switcher de categoria
@@ -478,7 +478,6 @@ if ($totalexams > 0) {
         </tr>
     </table>
     ";
-    echo $OUTPUT->tabtree(emarking_printoders_tabs($categories_id[0]));
     echo $OUTPUT->notification(get_string('noexamsforprinting', 'mod_emarking'), 'notifyproblem');
 }
 
