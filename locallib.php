@@ -970,29 +970,29 @@ function emarking_tabs($context, $cm, $emarking, $draft=null) {
  *            The category object
  * @return multitype:tabobject array of tabobjects
  */
-function emarking_printoders_tabs($category) {
+function emarking_printoders_tabs($categoryid) {
     $tabs = array();
     // Print orders.
     $tabs[] = new tabobject("printorders", new moodle_url("/mod/emarking/print/printorders.php", array(
-        "category" => $category->id,
+        "category" => $categoryid,
         "status" => 1
     )), get_string("printorders", 'mod_emarking'));
     // Print orders history.
     $tabs[] = new tabobject("printordershistory", new moodle_url("/mod/emarking/print/printorders.php", array(
-        "category" => $category->id,
+        "category" => $categoryid,
         "status" => 2
     )), get_string("records", 'mod_emarking'));
     // Statistics.
     $statstab = new tabobject("statistics", new moodle_url("/mod/emarking/reports/print.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("reports", 'mod_emarking'));
     // Print statistics.
     $statstab->subtree[] = new tabobject("print", new moodle_url("/mod/emarking/reports/print.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("statistics", 'mod_emarking'));
     // Print statistics details.
     $statstab->subtree[] = new tabobject("printdetails", new moodle_url("/mod/emarking/reports/printdetails.php", array(
-        "category" => $category->id
+        "category" => $categoryid
     )), get_string("printdetails", 'mod_emarking'));
     $tabs[] = $statstab;
     return $tabs;
@@ -1038,11 +1038,11 @@ function emarking_verify_logo() {
 function emarking_get_logo_file($filedir) {
     $fs = get_file_storage();
     $syscontext = context_system::instance();
-    if ($files = $fs->get_area_files($syscontext->id, 'mod_emarking', 'logo', 1, "filename", false)) {
+    if ($files = $fs->get_area_files($syscontext->id, 'core', 'logo', 1, "filename", false)) {
         foreach($files as $file) {
             $filename = $file->get_filename();
             if ($filename !== '.') {
-                $existingfile = $fs->get_file($syscontext->id, 'mod_emarking', 'logo', 1, '/', $file->get_filename());
+                $existingfile = $fs->get_file($syscontext->id, 'core', 'logo', 1, '/', $file->get_filename());
                 if ($existingfile) {
                     return emarking_get_path_from_hash($filedir, $existingfile->get_pathnamehash());
                 }
@@ -1839,7 +1839,7 @@ function emarking_is_regrade_requests_allowed($emarking) {
  * @return Ambigous <string, unknown>
  */
 function emarking_get_categories_childs($idcategory) {
-    $coursecat = coursecat::get($idcategory);
+    $coursecat = core_course_category::get($idcategory);
     $ids = array();
     $ids[] = $idcategory;
     foreach($coursecat->get_children() as $id => $childcategory) {

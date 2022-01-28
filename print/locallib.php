@@ -232,7 +232,7 @@ function emarking_get_student_picture($student, $userimgdir) {
         'filearea' => 'icon',
         'filename' => 'f1.png'
     ));
-    if ($imgfile) {
+    if ($imgfile && $CFG->emarking_includeuserpicture) {
         return emarking_get_path_from_hash($userimgdir, $imgfile->pathnamehash, "u" . $student->id, true);
     } else {
         return $CFG->dirroot . "/pix/u/f1.png";
@@ -2171,7 +2171,7 @@ function emarking_draw_header($pdf, $stinfo, $examname, $pagenumber, $fileimgpat
     }
     list ($img, $imgrotated) = emarking_create_qr_image($fileimgpath, $qrstring, $stinfo, $pagenumber);
     $pdf->Image($img, 176, 3, 34);
-    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == 1) {
+    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == true) {
         $pdf->Image($imgrotated, 0, $pdf->getPageHeight() - 35, 34);
     }
     // Delete QR images.
@@ -2200,7 +2200,6 @@ function emarking_create_qr_image($fileimg, $qrstring, $stinfo, $i) {
     // Same image but rotated.
     QRcode::png($qrstring . "-R", $imgrotated);
 
-    //Replacing gd library with imagick
     $imagick = new Imagick();
     $imagick->readImage($imgrotated);
     $imagick->rotateimage('#00000000', 180);
