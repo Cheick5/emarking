@@ -292,11 +292,11 @@ foreach ($categories_id as $index => $categoryid) {
                             'action' => 'resetexam'
                         )
                     ),
-                    new pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'))
+                    new pix_icon('i/loading_small', get_string('examgenerationinprogress', 'mod_emarking'))
                 );
             } else {
                 $actions .= html_writer::div(
-                    $OUTPUT->pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'), null)
+                    $OUTPUT->pix_icon('i/loading_small', get_string('examgenerationinprogress', 'mod_emarking'), null)
                 );
             }
         } else if ($exam->status == EMARKING_EXAM_ERROR_PROCESSING) {
@@ -332,12 +332,19 @@ foreach ($categories_id as $index => $categoryid) {
         }
         // Print directly.
         if ($CFG->emarking_enableprinting) {
-            $urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
-                'exam' => $exam->id
-            ));
-            $actions .= html_writer::div(
-                $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking")))
-            );
+            if ($exam->status == EMARKING_EXAM_PROCESSED || $exam->status == EMARKING_EXAM_SENT_TO_PRINT || $exam->status == EMARKING_EXAM_PRINTED) {
+                $urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
+                    'exam' => $exam->id
+                ));
+                $actions .= html_writer::div(
+                    $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking")))
+                );
+            }
+            else{
+                $actions .= html_writer::div(
+                    $OUTPUT->pix_icon('t/locktime', get_string('printnotavailable', 'mod_emarking'))
+                );
+            }
         }
         // Download print form.
         $urldownloadform = new moodle_url(
