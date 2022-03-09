@@ -265,6 +265,11 @@ input[type="text"] {
 	margin-bottom: 12px;
 }
 
+.printdirectly {
+	cursor: pointer;
+	margin-bottom: 12px;
+}
+
 .newprintorder input {
 	color: #fff;
 	background-color: #0038a8;
