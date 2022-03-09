@@ -819,6 +819,7 @@ $string ['eventdeletemarkdeleted'] = 'Delete Mark';
 $string ['eventinvalidaccessgranted'] = 'Invalid access, trying to upload exam';
 $string ['eventsuccessfullydownloaded'] = 'Download successfull';
 $string ['eventinvalidtokengranted'] = 'Invalid token trying to download exam.';
+$string ['eventinvalidtokengrantedprint'] = 'Invalid token trying to print exam.';
 $string ['unauthorizedccess'] = 'WARNING: Unauthorized access to EMarking Ajax inteface';
 $string ['eventmarkersconfigcalled'] = 'The markers config was called';
 $string ['eventmarkersassigned'] = 'Markers have been assigned';

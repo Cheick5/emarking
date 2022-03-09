@@ -65,7 +65,7 @@ YUI().use('io', 'json-parse', 'node', 'dump', 'console', 'datatable-mutable', 'p
 			};
 			e.preventDefault();
 			panel.hide();
-			var url = printurl + '?sesskey=' + sessionkey + '&token=' + smsField.get('value');
+			var url = printurl + '?sesskey=' + sessionkey + '&token=' + smsField.get('value') + '&incourse=' + incourse;
 			Y.log(url);
 			Y.config.win.open(url);
 		}

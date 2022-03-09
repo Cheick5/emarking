@@ -826,6 +826,7 @@ $string ['eventdeletemarkdeleted'] = 'Borrar Marca';
 $string ['eventinvalidaccessgranted'] = 'Acceso inválido, intentando cargar la prueba';
 $string ['eventsuccessfullydownloaded'] = 'Descarga de prueba exitosa';
 $string ['eventinvalidtokengranted'] = 'Código de seguridad no válido al intentar descargar prueba.';
+$string ['eventinvalidtokengrantedprint'] = 'Código de seguridad no válido al intentar imprimir prueba.';
 $string ['eventunauthorizedccessgranted'] = 'WARNING: Acceso no autorizado a la Interfaz Ajax de EMarking';
 $string ['eventmarkersconfigcalled'] = 'Se ingresa al markers config';
 $string ['eventmarkersassigned'] = 'Correctores han sido assignado';

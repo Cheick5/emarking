@@ -105,6 +105,7 @@ YUI().use('io', 'json-parse', 'node', 'dump', 'console', 'datatable-mutable', 'p
 					}
 					catch (e) {
 						alert('JSON Parse failed!');
+						loadingpanel.hide();
 						return;
 					}
 					loadingpanel.hide();

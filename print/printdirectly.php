@@ -36,6 +36,7 @@ if (! isloggedin() || isguestuser()) {
 $sesskey = required_param("sesskey", PARAM_ALPHANUM);
 $examid = optional_param("examid", 0, PARAM_INT);
 $token = optional_param("token", 0, PARAM_INT);
+$incourse = optional_param("incourse", false, PARAM_BOOL);
 
 // Validate session key.
 if ($sesskey != $USER->sesskey) {
@@ -65,9 +66,25 @@ if (! $course = $DB->get_record("course", array(
 }
 $contextcat = context_coursecat::instance($course->category);
 $contextcourse = context_course::instance($course->id);
+$url = new moodle_url("/mod/emarking/print/printdirectly.php",
+    array(
+        "examid" => $exam->id,
+        "token" => $token,
+        "sesskey" => $sesskey));
+$PAGE->set_context($contextcourse);
+$PAGE->set_url($url);
+$coursecategoryurl = new moodle_url("/mod/emarking/print/printorders.php", array(
+    "category" => $course->category));
+$courseurl = new moodle_url("/mod/emarking/print/exams.php", array(
+    "course" => $course->id));
 
 // Validate capability in the category context.
 if (! has_capability('mod/emarking:printordersview', $contextcat)) {
+    $item = array(
+        "context" => $contextcourse,
+        "objectid" => $exam->emarking);
+    // Add to Moodle log so some auditing can be done.
+    \mod_emarking\event\invalidaccessdownload_attempted::create($item)->trigger();
     echo json_encode(array(
         "error" => get_string("invalidaccess", "mod_emarking")));
     die();
@@ -83,8 +100,11 @@ if ($exam->status < EMARKING_EXAM_PROCESSED) {
 
 // If a token was sent and it was not valid, log and die.
 if (!$directdownload && $token > 9999 && $_SESSION [$USER->sesskey . "smstoken"] !== $token) {
-    echo json_encode(array(
-        "error" => get_string("eventinvalidtokengranted", "mod_emarking")));
+    echo $OUTPUT->header();
+    echo $OUTPUT->notification(get_string("eventinvalidtokengrantedprint", "mod_emarking"), "notifyproblem");
+    $buttonurl = $incourse ? $courseurl : $coursecategoryurl;
+    echo $OUTPUT->single_button($buttonurl, get_string("back"), "get");
+    echo $OUTPUT->footer();
     die();
 }
 
@@ -94,9 +114,12 @@ if ($token > 9999 && ($_SESSION [$USER->sesskey . "smstoken"] === $token)) {
 	$tokendate->setTimestamp($_SESSION [$USER->sesskey . "smsdate"]);
 	$diff = $now->diff($tokendate);
 	if ($diff->i > 5 && false) {
-        echo json_encode(array(
-            "error" => get_string("tokenexpired", "mod_emarking")));
-		die();
+        echo $OUTPUT->header();
+        echo $OUTPUT->notification(get_string("tokenexpired", "mod_emarking"), "notifyproblem");
+        $buttonurl = $incourse ? $courseurl : $coursecategoryurl;
+        echo $OUTPUT->single_button($buttonurl, get_string("back"), "get");
+        echo $OUTPUT->footer();
+        die();
 	}
 	// Redirect to print exam
     $continueurl = new moodle_url('/mod/emarking/print/printexam.php', array(
