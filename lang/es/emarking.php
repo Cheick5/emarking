@@ -208,6 +208,8 @@ $string ['examstatusprocessed'] = 'Procesada';
 $string ['downloadexam'] = 'Descargar prueba';
 $string ['reprocessexam'] = 'Reprocesar prueba';
 $string ['comment_help'] = 'Comentario para hacer llegar a la impresión.';
+$string ['uploaded'] = 'Subida';
+$string ['examsentoprint'] = 'Prueba enviada a impresión';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (mucho peor de lo que merecía)';
 $string ['er-3'] = '-3';
@@ -250,6 +252,7 @@ $string ['secondstagedate_help'] = 'Fecha límite en la que los correctores debe
 $string ['mustseefeedbackbeforejustice'] = 'Debes revisar la corrección de tu prueba antes de entregar tu opinión.';
 $string ['reviewpeersfeedback'] = 'Revisar compañeros';
 // PREDEFINED COMMENTS.
+$string ['favorite'] = 'Favorito';
 $string ['datahasheaders'] = 'Ignorar primera fila';
 $string ['predefinedcomments'] = 'Comentarios predefinidos';
 $string ['predefinedcomments_help'] = 'Pegue una columna de comentarios desde Excel (con o sin encabezado), cada fila se creará como un comentario predefinido.';
@@ -345,6 +348,7 @@ $string ['printserver'] = 'Servidor de impresiones (número IP)';
 $string ['printserver_help'] = 'Hace que Moodle imprima las evaluaciones de E-Marking en un servidor de impresiones cups (dejar en blanco si no utiliza un servidor de impresiones).';
 $string ['examgenerationinprogress'] = 'Generación de PDF en curso. Vuelva más tarde.';
 $string ['personalizedexamsgeneration'] = 'Generación de pruebas personalizadas';
+$string ['printordersrange'] = '???';
 // EMARKING UPLOAD ANSWERS.
 $string ['confirmprocess'] = 'Confirmar proceso';
 $string ['confirmprocessfile'] = 'You are about to process file {$a->file} as student submissions for assignment {$a->assignment}.<br> This will delete any previous submissions from students on that assignment. Are you sure?';
@@ -368,6 +372,12 @@ $string ['anonymousfile'] = 'Archivo anónimo';
 $string ['noorphanpages'] = 'No hay páginas huérfanas';
 $string ['rotatepage'] = 'Rotar página';
 // REPORTS.
+$string ['enableconfigtab'] = 'Etiqueta configuración habilitada';
+$string ['enableconfigtab_help'] = 'Si se habilita, se mostrará una etiqueta de configuración en la actividad, que incluye configuraciones avanzadas.';
+$string ['enableregrading'] = 'Recorrección habilitada';
+$string ['enableregrading_help'] = 'La recorrección permite que los estudiantes soliciten recorregir una o más preguntas, llenando un formulario con el tipo de reclamo y un comentario.';
+$string ['reportsenabled'] = 'Reportes habilitados';
+$string ['reportsenabled_help'] = 'Seleccione los reportes que se mostrarán en la etiqueta reportes de cada actividad Emarking.';
 $string ['reports'] = 'Reportes';
 $string ['gradereport'] = 'Grades report';
 $string ['gradereport_help'] = 'This report shows basic statistics and a three graphs. It includes the grades from a particular EMarking activity but other activities from other courses can be added if the parallel courses settings are configured.<br/>
@@ -392,7 +402,8 @@ $string ['statuspercriterion'] = 'Avance por pregunta';
 $string ['feedbackreport'] = 'Reporte de retroalimentación';
 $string ['feedback'] = 'Retroalimentación';
 $string ['viewfeedback'] = 'Ver estudiantes';
-$string['feedbackwordcloud'] = 'Nube de palabras de retroalimentación';
+$string ['feedbackwordcloud'] = 'Nube de palabras de retroalimentación';
+$string ['markingfeedback'] = 'Retroalimentación de corrección';
 // EMARKING COST REPORT.
 $string ['period'] = 'Periodo';
 $string ['subcategoryname'] = 'Nombre de la sub-categoría';
@@ -428,6 +439,7 @@ $string ['categoryselection_help'] = 'Selecciona la categoria que deseas agregar
 $string ['categoryselect_help'] = 'Selecciona la categoria a la que deseas ir';
 $string ['categoryselect'] = 'Elegir una categoria';
 $string ['categoryselection'] = 'Elegir una categoria';
+$string ['categories'] = 'Categorías';
 $string ['downloadexcel'] = 'Descargar excel';
 $string ['costbyperiod'] = 'Costos por periodo';
 $string ['categorynavegation'] = 'Navegación por categoría';
@@ -835,6 +847,7 @@ $string['filters'] = 'Filtros';
 // Cycle
 $string['summary'] = 'Resumen';
 $string['emarkingsummary'] = 'Resumen Emarking';
+$string['filter'] = 'Filtro';
 $string['days'] = 'Días';
 $string['dayshoursstrong'] = '<strong>Días/Horas</strong>';
 $string['emarkingname'] = 'Nombre del Emarking';
@@ -911,3 +924,22 @@ $string['motiverequired'] = 'Debe seleccionar un motivo.';
 
 $string['roleidstudent'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
 $string['roleidstudent_help'] = 'Rol Id que utilizará emarking para identificar a los estudiantes enrolados a los cursos.';
+
+$string['uploaded'] = "Subido";
+// ACTIVITIES
+$string['emarking:manageactivities']='Gestionar actividades';
+$string['visible'] = 'Visible';
+$string['activity_instructions'] = 'Instrucciones';
+$string['activity_instructions_help'] = 'Instrucciones a los estudiantes';
+$string['activity_description'] = 'Descripción';
+$string['activity_description_help'] = 'Descripción corta de la actividad (máximo 300 caracteres)';
+$string['activity_title'] = 'Título';
+$string['activity_title_help'] = 'Título de la actividad';
+$string['selectoa'] = 'No ha seleccionado objetivos de aprendizaje';
+$string['searchoa'] = 'Buscar objetivos de aprendizaje';
+$string['oas'] = 'Objetivos de Aprendizaje';
+$string['oas_help'] = 'Seleccione los OAs a los que aplica la actividad, de acuerdo al curriculum nacional';
+$string['removeallfilters'] = 'Quitar filtros';
+$string['gradeitem:exams'] = 'Prueba';
+
+$string['assign_orphan_to_student'] = 'Asignar pagina huerfana a estudiante';

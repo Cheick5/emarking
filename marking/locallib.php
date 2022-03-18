@@ -128,7 +128,7 @@ function emarking_get_all_pages($emarking, $submission, $draft, $studentanonymou
             } else {
                 $emarkingpage->showmarker = 1;
             }
-            $emarkingpage->comments = emarking_get_comments_page($pagenumber, $draft->id, $winwidth, $winheight);
+            $emarkingpage->comments = emarking_get_comments_page($pagenumber, $draft->id);
             $emarkingpages [] = $emarkingpage;
         }
     }
@@ -179,7 +179,7 @@ function emarking_get_markers_in_training($emarkingid, $context, $filterbypartic
         $markersintraining,
         $userismarker);
 }
-function emarking_get_comments_page($pageno, $draftid, $winwidth, $winheight) {
+function emarking_get_comments_page($pageno, $draftid) {
     global $DB;
     $sqlcomments = "SELECT
 		aec.id,
@@ -368,7 +368,8 @@ function emarking_download_excel($emarking, $context=null) {
     	$current = 0;
     	foreach($crit['levels'] as $lvl) {
     		$current++;
-    		$levelsindex[$lvl['id']] = $total - $current + 1; 
+    		$levelsindex[$lvl['id']] = $current; 
+    		
     	}
     }
     // Retrieve marking

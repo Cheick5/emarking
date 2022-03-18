@@ -24,16 +24,15 @@
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
 if ($CFG->version > 2015111600) {
     require_once($CFG->dirroot . "/lib/pdflib.php");
-    require_once($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+    require_once($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
 } else {
     require_once($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
 }
-require_once($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+require_once($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
 require_once($CFG->dirroot . "/mod/emarking/lib/phpqrcode/phpqrcode.php");
 require_once($CFG->dirroot . "/mod/emarking/lib.php");
 require_once($CFG->dirroot . "/mod/emarking/locallib.php");
 require_once("locallib.php");
-require_once($CFG->libdir . "/eventslib.php");
 require_once($CFG->dirroot . "/mod/emarking/classes/event/invalidtokendownload_attempted.php");
 global $USER;
 // We validate login first as this page can be reached by the copy center
@@ -72,6 +71,12 @@ if (! $course = $DB->get_record("course", array(
     print_error(get_string("invalidcourseid", "mod_emarking"));
     die();
 }
+// Add printdate to database
+if ($exam = $DB->get_record("emarking_exams", array(
+    "id" => $examid))){
+    $exam->printdate = time();
+    $DB->update_record('emarking_exams', $exam);
+}   
 $contextcat = context_coursecat::instance($course->category);
 $contextcourse = context_course::instance($course->id);
 $url = new moodle_url("/mod/emarking/print/download.php",

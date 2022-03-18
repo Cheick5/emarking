@@ -32,13 +32,13 @@ function emarking_get_temp_dir_path($postfix) {
  * @param unknown $category            
  */
 function emarking_generate_personalized_exams($category = NULL) {
-    global $DB;
-    
+    global $DB, $CFG;
+    // Create category filter SQL when a category was given.
     $categoryfilter = '';
     if ($category) {
         $categoryfilter = ' AND c.category = ' . $category->id;
     }
-    
+    // Get all exams that need to be generated (UPLOADED status).
     $exams = $DB->get_records_sql('
         SELECT e.*, c.fullname, c.shortname, c.id AS courseid, c.category
         FROM {emarking_exams} e
@@ -47,6 +47,7 @@ function emarking_generate_personalized_exams($category = NULL) {
         ' . $categoryfilter, array(
         'status' => EMARKING_EXAM_UPLOADED
     ));
+    // Generate each exam.
     $i = 0;
     foreach($exams as $exam) {
         $examname = "[$exam->id] $exam->fullname $exam->name";
@@ -82,6 +83,8 @@ function emarking_generate_personalized_exams($category = NULL) {
                 $exam->status = EMARKING_EXAM_ERROR_PROCESSING;
                 $DB->update_record('emarking_exams', $exam);
             }
+            $filedir = $CFG->dataroot . "/temp/emarking/$exam->id";
+            emarking_initialize_directory($filedir, true);
         } catch (Exception $e) {
             $message = 'exception printing';
             // Update the exam status to error.
@@ -229,7 +232,7 @@ function emarking_get_student_picture($student, $userimgdir) {
         'filearea' => 'icon',
         'filename' => 'f1.png'
     ));
-    if ($imgfile) {
+    if ($imgfile && $CFG->emarking_includeuserpicture) {
         return emarking_get_path_from_hash($userimgdir, $imgfile->pathnamehash, "u" . $student->id, true);
     } else {
         return $CFG->dirroot . "/pix/u/f1.png";
@@ -422,7 +425,7 @@ function emarking_send_digitizing_notification($cron = true, $debug = false, $de
             $eventdata->fullmessagehtml = $posthtml;
             $eventdata->smallmessage = $postsubject;
             $eventdata->notification = 1;
-            //$eventdata->courseid = $course->id;
+            $eventdata->courseid = $course->id;
             message_send($eventdata);
         }
         // Save the date of the digitization.
@@ -537,11 +540,11 @@ function emarking_pdf_count_pages($newfile, $tempdir, $doubleside = true) {
     global $CFG;
     if ($CFG->version > 2015111600) {
         require_once ($CFG->dirroot . "/lib/pdflib.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
     } else {
         require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
     }
-    require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+    require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
     $doc = new FPDI();
     $files = $doc->setSourceFile($newfile);
     $doc->Close();
@@ -563,11 +566,11 @@ function emarking_create_printform($context, $exam, $userrequests, $useraccepts,
     global $CFG;
     if ($CFG->version > 2015111600) {
         require_once ($CFG->dirroot . "/lib/pdflib.php");
-        require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi_bridge.php");
+        require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi_bridge.php");
     } else {
         require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi2tcpdf_bridge.php");
     }
-    require_once ($CFG->dirroot . "/mod/assign/feedback/editpdf/fpdi/fpdi.php");
+    require_once ($CFG->dirroot . "/mod/emarking/lib/fpdi/fpdi.php");
     $originalsheets = $exam->totalpages + $exam->extrasheets;
     $copies = $exam->totalstudents + $exam->extraexams;
     $totalpages = emarking_exam_total_pages_to_print($exam);
@@ -885,11 +888,8 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
     global $CFG, $DB;
     require_once $CFG->dirroot . '/mod/emarking/lib/qrextractor/config.php';
     $context = context_module::instance($cm->id);
-    $exam = $DB->get_record('emarking_exams', array(
-        'emarking' => $emarking->id
-    ));
     // Setup de directorios temporales.
-    $tempdir = emarking_get_temp_dir_path($emarking->id);
+    $tempdir = emarking_get_temp_dir_path('up'.$emarking->id);
     emarking_initialize_directory($tempdir, true);
     $extension = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
     $filename = pathinfo($filepath, PATHINFO_FILENAME);
@@ -902,16 +902,8 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
             0
         );
     }
-    if($extension === 'zip') {
-    if (!emarking_unzip($filepath, $tempdir . "/") || !$exam) {
-        return array(
-            false,
-            get_string('errorprocessingextraction', 'mod_emarking'),
-            0,
-            0
-        );
-    }
-    } elseif ($extension === 'pdf') {
+   
+    if ($extension === 'pdf') {
         if($emarking->uploadtype != EMARKING_UPLOAD_FILE) {
             $command = 'java -jar ' . $CFG->dirroot . '/mod/emarking/lib/qrextractor/emarking.jar '
                 . '--url ' . $CFG->wwwroot . '/ --user ' . $CFG->emarking_qr_user . ' --pwd '
@@ -932,6 +924,7 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
         $lastline = exec($command, $output, $return_var);
         if($return_var != 0) {
             $errormsg = $lastline;
+            emarking_initialize_directory($tempdir, true);
             return array(
             false,
             $errormsg,
@@ -939,7 +932,18 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
             0
         );
         }
+    }elseif($extension === 'zip'){
+    
+    	$zip = new ZipArchive;
+    	$res = $zip->open($filepath);
+    	if ($res === TRUE) {
+    		// extract it to the path we determined above
+    		$zip->extractTo($tempdir);
+    		$zip->close();
+    	} else { throw new Exception('Cant open the file ' . $filepath);  }	
+    	
     } else { throw new Exception('Invalid extension for file ' . $extension); }
+    
     $totaldocumentsprocessed = 0;
     $totaldocumentsignored = 0;
     // Read full directory, then start processing.
@@ -957,7 +961,8 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
     }
     $total = count($pngfiles);
     if ($total == 0) {
-        return array(
+    	emarking_rrmdir($tempdir);
+    	 return array(
             false,
             get_string('nopagestoprocess', 'mod_emarking'),
             0,
@@ -1049,7 +1054,8 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
         if (emarking_submit($emarking, $context, $tempdir, $file, $student, $pagenumber, NULL)) {
             $totaldocumentsprocessed++;
         } else {
-            return array(
+        	emarking_rrmdir($tempdir);
+        	 return array(
                 false,
                 get_string('invalidzipnoanonymous', 'mod_emarking'),
                 $totaldocumentsprocessed,
@@ -1062,11 +1068,15 @@ function emarking_upload_answers($emarking, $filepath, $course, $cm, $doubleside
             echo "Error assigning peers";
         }
     }
-    if ($exam->usebackside == 0 && $doubleside) {
+    $exam = $DB->get_record('emarking_exams', array(
+    		'emarking' => $emarking->id
+    ));
+    if ($exam != null && $exam->usebackside == 0 && $doubleside) {
         $exam->usebackside = 1;
         $result = $DB->update_record('emarking_exams', $exam);
     }
     emarking_send_processanswers_notification($emarking, $course);
+    emarking_rrmdir($tempdir);
     return array(
         true,
         get_string('invalidpdfnopages', 'mod_emarking'),
@@ -1499,9 +1509,10 @@ function emarking_send_email_code($code, $user, $course, $examname) {
     $eventdata->fullmessageformat = FORMAT_HTML;
     $eventdata->fullmessagehtml = $thismessagehtml;
     $eventdata->smallmessage = $subject;
-    $eventdata->notification = '0';
-    //$eventdata->courseid = $course->id;
+    $eventdata->notification = '1';
+    $eventdata->courseid = $course->id;
     return message_send($eventdata);
+    
 }
 
 /**
@@ -1610,7 +1621,7 @@ function emarking_create_response_pdf($draft, $student, $context, $cmid) {
     }
     // Parameters for PDF generation.
     $iconsize = 5;
-    $tempdir = emarking_get_temp_dir_path($emarking->id);
+    $tempdir = emarking_get_temp_dir_path('re'.$emarking->id);
     if (!file_exists($tempdir)) {
         emarking_initialize_directory($tempdir, true);
     }
@@ -1671,14 +1682,19 @@ function emarking_create_response_pdf($draft, $student, $context, $cmid) {
         // Set the starting point for the page content.
         $pdf->setPageMark();
         $dimensions = $pdf->getPageDimensions();
+        $current=0;
         if (isset($commentsperpage[$page->page])) {
             foreach($commentsperpage[$page->page] as $comment) {
-                $content = $comment->rawtext;
+            	$current++;
+            	$content = $comment->rawtext;
                 $posx = (int) (((float) $comment->posx) * 210);
                 $posy = (int) (((float) $comment->posy) * 297);
                 if ($comment->textformat == 1) {
                     // Text annotation.
-                    $pdf->Annotation($posx, $posy, 6, 6, $content, array(
+                	$style = array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => '0', 'color' => array(255, 0, 0));
+                	$pdf->Text($posx, $posy, $current);
+                    $pdf->Line($posx, $posy, $posx + 100, $posy, $style);
+                    /*$pdf->Annotation($posx, $posy, 6, 6, $content, array(
                         'Subtype' => 'Text',
                         'StateModel' => 'Review',
                         'State' => 'None',
@@ -1691,7 +1707,7 @@ function emarking_create_response_pdf($draft, $student, $context, $cmid) {
                             0,
                             255
                         )
-                    ));
+                    ));*/
                     $pdf->Bookmark(get_string('comment', 'mod_emarking') . ' ' . $comment->id, 0, $posy);
                 } else 
                     if ($comment->textformat == 2) {
@@ -1755,6 +1771,7 @@ function emarking_create_response_pdf($draft, $student, $context, $cmid) {
         $previousfile->delete();
     }
     $fileinfo = $fs->create_file_from_pathname($filerecord, $pathname);
+    emarking_rrmdir($tempdir);
     return true;
 }
 
@@ -1809,7 +1826,7 @@ function emarking_download_exam($examid, $multiplepdfs = false, $groupid = null,
     // Convert enrolments to array.
     $enrolincludes = explode(",", $enrolincludes);
     // Produce all PDFs first separatedly.
-    $filedir = $CFG->dataroot . "/temp/emarking/$context->id";
+    $filedir = $CFG->dataroot . "/temp/emarking/$examid";
     $fileimg = $filedir . "/qr";
     $userimgdir = $filedir . "/u";
     $pdfdir = $filedir . "/pdf";
@@ -1978,50 +1995,6 @@ function emarking_download_exam($examid, $multiplepdfs = false, $groupid = null,
         return true;
     }
     $examfilename = emarking_clean_filename($course->shortname, true) . '_' . emarking_clean_filename($downloadexam->name, true);
-    $zipdebugmsg = '';
-    if ($multiplepdfs) {
-        $zip = new ZipArchive();
-        $zipfilename = $filedir . "/" . $examfilename . ".zip";
-        if ($zip->open($zipfilename, ZipArchive::CREATE) !== true) {
-            throw new Exception('Could not create zip file');
-        }
-        // Check if we have to print the students list.
-        if ($downloadexam->printlist == 1) {
-            $zip->addFile($studentlistpdffile);
-        }
-        // Add every student PDF to zip file.
-        $currentstudent = 0;
-        foreach($studentinfo as $stinfo) {
-            $currentstudent++;
-            if ($pbar != null) {
-                $pbar->update($currentstudent, count($studentinfo), get_string('printing', 'mod_emarking') . ' ' . $stinfo->name);
-            }
-            if (!isset($stinfo->examfile) || !file_exists($stinfo->examfile)) {
-                continue;
-            }
-            if (!$zip->addFile($stinfo->examfile, $stinfo->pdffilename . '.pdf')) {
-                $zipdebugmsg .= "Problems adding $stinfo->examfile to ZIP file using name $stinfo->pdffilename <hr>";
-            }
-        }
-        $zip->close();
-        if ($CFG->debug || $debugprinting) {
-            echo $zipdebugmsg;
-        }
-        // Notify everyone that the exam was downloaded.
-        emarking_send_examdownloaded_notification($downloadexam, $course, $USER);
-        $downloadexam->status = EMARKING_EXAM_SENT_TO_PRINT;
-        $downloadexam->printdate = time();
-        $DB->update_record('emarking_exams', $downloadexam);
-        // Add to Moodle log so some auditing can be done.
-        \mod_emarking\event\exam_downloaded::create_from_exam($downloadexam, $context)->trigger();
-        // Read zip file from disk and send to the browser.
-        $filename = basename($zipfilename);
-        header("Content-Type: application/zip");
-        header("Content-Disposition: attachment; filename=" . $examfilename . ".zip");
-        header("Content-Length: " . filesize($zipfilename));
-        readfile($zipfilename);
-        exit();
-    }
     // We create the final big PDF file.
     $pdf = new FPDI();
     $pdf->SetPrintHeader(false);
@@ -2198,7 +2171,7 @@ function emarking_draw_header($pdf, $stinfo, $examname, $pagenumber, $fileimgpat
     }
     list ($img, $imgrotated) = emarking_create_qr_image($fileimgpath, $qrstring, $stinfo, $pagenumber);
     $pdf->Image($img, 176, 3, 34);
-    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == 1) {
+    if ($bottomqr && isset($CFG->emarking_bottomqr) && $CFG->emarking_bottomqr == true) {
         $pdf->Image($imgrotated, 0, $pdf->getPageHeight() - 35, 34);
     }
     // Delete QR images.
@@ -2226,9 +2199,12 @@ function emarking_create_qr_image($fileimg, $qrstring, $stinfo, $i) {
     QRcode::png($qrstring, $img);
     // Same image but rotated.
     QRcode::png($qrstring . "-R", $imgrotated);
-    $gdimg = imagecreatefrompng($imgrotated);
-    $rotated = imagerotate($gdimg, 180, 0);
-    imagepng($rotated, $imgrotated);
+
+    $imagick = new Imagick();
+    $imagick->readImage($imgrotated);
+    $imagick->rotateimage('#00000000', 180);
+    $imagick->writeImage($imgrotated);
+
     return array(
         $img,
         $imgrotated
@@ -2320,12 +2296,12 @@ function emarking_create_anonymous_page_from_storedfile(stored_file $file, $stud
     return $fileinfo;
 }
 /**
- * Erraces all the content of a directory, then ir creates te if they don't exist.
+ * Creates directory it if it doesn't exist, optionally deletes all content in the directory.
  *
  * @param unknown $dir
- *            Directorio
+ *            Directory
  * @param unknown $delete
- *            Borrar archivos previamente
+ *            Delete content
  */
 function emarking_initialize_directory($dir, $delete) {
     if ($delete) {
@@ -2349,6 +2325,11 @@ function emarking_initialize_directory($dir, $delete) {
  * @param unknown_type $dir            
  */
 function emarking_rrmdir($dir) {
+	global $CFG;
+	// Protect from unwanted deletion. 
+	if($dir == null || strlen($dir) < strlen($CFG->dataroot) || substr($dir, 0, strlen($CFG->dataroot)) !== $CFG->dataroot) {
+		throw new Exception('Fatal error invalid directory for temp files in Emarking');
+	}
     foreach(glob($dir . '/*') as $file) {
         if (is_dir($file)) {
             emarking_rrmdir($file);
@@ -2360,7 +2341,7 @@ function emarking_rrmdir($dir) {
 }
 
 /**
- * Sends an sms message using UAI's service with infobip.com.
+ * Sends an sms message using Twilio's service.
  * Returns true if successful, false otherwise.
  *
  * @param string $message
@@ -2522,5 +2503,6 @@ function emarking_process_digitized_answers() {
         $DB->update_record('emarking_digitized_answers', $digitizedanswerfile);
         mtrace($msg);
     }
+    emarking_initialize_directory($tempdir, true);
     mtrace("A total of $totalfiles were processed.");
 }

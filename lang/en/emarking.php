@@ -69,7 +69,7 @@ $string ['markingtypemandatory'] = 'You must select a marking type';
 $string ['emarkingviewed'] = 'Feedback viewed';
 $string ['updateemarkingtype'] = 'You are about to {$a->message} in {$a->name}. There are no risks in doing so, you can change this later in settings at any time.';
 // EMARKING UPLOAD TYPES.
-$string ['uploadtype_file'] = 'File';
+$string ['uploadtype_file'] = 'Student uploads file';
 $string ['uploadtype_html'] = 'Inline text (accepts HTML)';
 $string ['uploadtype_qr'] = 'Scanned QR code';
 $string ['uploadtype_text'] = 'Inline text (without HTML)';
@@ -208,6 +208,8 @@ $string ['examstatusprocessed'] = 'Processed';
 $string ['downloadexam'] = 'Download exam';
 $string ['reprocessexam'] = 'Reprocess exam';
 $string ['comment_help'] = 'Comment for the printing staff.';
+$string ['uploaded'] = 'Uploaded';
+$string ['examsentoprint'] = 'Exam sent to print';
 // JUSTICE PERCEPTION.
 $string ['er-4'] = '-4 (much worse than I deserved)';
 $string ['er-3'] = '-3';
@@ -250,6 +252,7 @@ $string ['secondstagedate_help'] = 'Maximum date for markers to reach agreement'
 $string ['mustseefeedbackbeforejustice'] = 'You must review your exam feedback before you can give your opinion.';
 $string ['reviewpeersfeedback'] = 'Review peers';
 // PREDEFINED COMMENTS.
+$string ['favorite'] = 'Favorite';
 $string ['datahasheaders'] = 'Ignore first row';
 $string ['predefinedcomments'] = 'Predefined comments';
 $string ['predefinedcomments_help'] = 'Paste a column from Excel (with or without a header) to import all the rows as predefined comments.';
@@ -347,6 +350,7 @@ $string ['examgenerationinprogress'] = 'Exam generation in progress';
 $string ['examgenerationerrorprocessing'] = 'Error processing';
 $string ['examgenerationscheduled'] = 'Exam generation scheduled';
 $string ['personalizedexamsgeneration'] = 'Personalized exams generation';
+$string ['printordersrange'] = '???';
 // EMARKING UPLOAD ANSWERS.
 $string ['confirmprocess'] = 'Confirm process';
 $string ['confirmprocessfile'] = 'You are about to process file {$a->file} as student submissions for assignment {$a->assignment}.<br> This will delete any previous submissions from students on that assignment. Are you sure?';
@@ -374,6 +378,12 @@ $string ['anonymousfile'] = 'Anonymous file';
 $string ['noorphanpages'] = 'There are no orphan pages';
 $string ['rotatepage'] = 'Rotate page';
 // REPORTS.
+$string ['enableconfigtab'] = 'Tab configuration enabled';
+$string ['enableconfigtab_help'] = 'If enabled, a tab for configuration of the Emarking activity will be shown for the teacher.';
+$string ['enableregrading'] = 'Regrading enabled';
+$string ['enableregrading_help'] = 'Regrading allows students to complain on the grading of one or more criteria. They must fill a form indicating the complain type and a comment.';
+$string ['reportsenabled'] = 'Reports enabled';
+$string ['reportsenabled_help'] = 'Select which reports will be enabled in the reports tab';
 $string ['gradereport'] = 'Grades report';
 $string ['gradereport_help'] = 'This report shows basic statistics and a three graphs. It includes the grades from a particular EMarking activity but other activities from other courses can be added if the parallel courses settings are configured.<br/>
 			<strong>Basic statistics:</strong>Shows the average, quartiles and ranges for the course.<br/>
@@ -397,7 +407,8 @@ $string ['statuspercriterion'] = 'Status per criterion';
 $string ['feedbackreport'] = 'Feedback report';
 $string ['feedback'] = 'Feedback';
 $string ['viewfeedback'] = 'View feedback';
-$string['feedbackwordcloud'] = 'Feedback word cloud';
+$string ['feedbackwordcloud'] = 'Feedback word cloud';
+$string ['markingfeedback'] = 'Marking feedback';
 // EMARKING COST REPORT.
 $string ['period'] = 'Period';
 $string ['subcategoryname'] = 'Subcategory name';
@@ -431,6 +442,7 @@ $string ['validcostcenter'] = 'Must enter numeric value';
 $string ['validcostcenter_help'] = 'Must enter valid cost center number';
 $string ['categoryselection_help'] = 'Please select the category where you want to add/modify the cost';
 $string ['categoryselection'] = 'Chose a category';
+$string ['categories'] = 'Categories'; 
 $string ['downloadexcel'] = 'Download excel';
 $string ['costbyperiod'] = 'Cost by period';
 $string ['categorynavegation'] = 'Category navegation';
@@ -828,7 +840,7 @@ $string['filters'] = 'Filters';
 // Cycle
 $string['summary'] = 'Summary';
 $string['emarkingsummary'] = 'Emarking Summary';
-$string['filters'] = 'Filters';
+$string['filter'] = 'filter';
 $string['days'] = 'Days';
 $string['dayshoursstrong'] = '<strong>Days/Hours</strong>';
 $string['emarkingname'] = 'Emarking Name';
@@ -906,3 +918,22 @@ $string['motiverequired'] = 'You must select a motive.';
 
 $string['roleidstudent'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
 $string['roleidstudent_help'] = 'Rol Id that emarking will use to identify students enrolled in courses.';
+
+$string['uploaded'] = "Uploaded";
+// ACTIVITIES
+$string['emarking:manageactivities']='Manage activities';
+$string['visible'] = 'Visible';
+$string['activity_instructions'] = 'Instructions';
+$string['activity_instructions_help'] = 'Instructions for students';
+$string['activity_description'] = 'Description';
+$string['activity_description_help'] = 'Short description of the activity';
+$string['activity_title'] = 'Title';
+$string['activity_title_help'] = 'Title of the activity';
+$string['selectoa'] = 'There are no learning objectives selected';
+$string['searchoa'] = 'Search learning objectives';
+$string['oas'] = 'Learning objectives';
+$string['oas_help'] = 'Learning objectives according to the Education Ministry';
+$string['removeallfilters'] = 'Remove all filters';
+$string['gradeitem:exams'] = 'Exams';
+
+$string['assign_orphan_to_student'] = 'Assign orphan page to student';

@@ -56,6 +56,18 @@ $url = new moodle_url('/mod/emarking/marking/index.php', array(
     'id' => $draftid));
 // Create the context within the course module.
 $context = context_module::instance($cm->id);
+
+// if the user is a student then he can only see his own emarkings
+// this is implemented the following way:
+// if the user cannot grade, and its not its own emarking
+// the emarking is hidden
+list ($issupervisor, $usercangrade) = emarking_get_grading_permissions($emarking, $context);
+
+if($usercangrade == false && $submission->student != $USER->id){
+    echo get_string("emptypermissions", "mod_emarking");
+    return false;
+}
+
 // Event indicating that a user opened an exam.
 $item = array(
     'context' => $context,
@@ -95,8 +107,8 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- This script loads your compiled module.   -->
 <!-- If you add any GWT meta tags, they must   -->
 <!-- be added before this line.                -->
-<script type="text/javascript"
-	src="<?php echo $emarkingdir?>/emarkingweb.nocache.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/javascript" src="<?php echo $emarkingdir?>/emarkingweb.nocache.js"></script>
 </head>
 <!--                                           -->
 <!-- The body can have arbitrary html, or      -->
@@ -104,6 +116,11 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- to create a completely dynamic UI.        -->
 <!--                                           -->
 <body style="padding-top: 0px;">
+  <script>
+  window.onload = function() {
+	  MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  }
+  </script>
 	<div id="emarking"
 		imagewidth="<?php echo $imagewidth; ?>"
 		moodleurl="<?php echo $CFG->wwwroot ?>/mod/emarking/ajax/a.php"></div>
