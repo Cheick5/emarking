@@ -183,6 +183,7 @@ foreach ($categories_id as $index => $categoryid) {
         $PAGE->set_context($context);
         $PAGE->set_url($url);
         $PAGE->requires->js('/mod/emarking/js/printorders.js');
+        $PAGE->requires->js('/mod/emarking/js/printdirectly.js');
         $PAGE->set_pagelayout('course');
         $PAGE->navbar->add($category->name, $categoryurl);
         $PAGE->navbar->add(get_string('printorders', 'mod_emarking'), $ordersurl);
@@ -292,11 +293,11 @@ foreach ($categories_id as $index => $categoryid) {
                             'action' => 'resetexam'
                         )
                     ),
-                    new pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'))
+                    new pix_icon('i/loading_small', get_string('examgenerationinprogress', 'mod_emarking'))
                 );
             } else {
                 $actions .= html_writer::div(
-                    $OUTPUT->pix_icon('i/configlock', get_string('examgenerationinprogress', 'mod_emarking'), null)
+                    $OUTPUT->pix_icon('i/loading_small', get_string('examgenerationinprogress', 'mod_emarking'), null)
                 );
             }
         } else if ($exam->status == EMARKING_EXAM_ERROR_PROCESSING) {
@@ -332,12 +333,31 @@ foreach ($categories_id as $index => $categoryid) {
         }
         // Print directly.
         if ($CFG->emarking_enableprinting) {
-            $urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
-                'exam' => $exam->id
-            ));
-            $actions .= html_writer::div(
-                $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking")))
-            );
+            if ($exam->status == EMARKING_EXAM_PROCESSED || $exam->status == EMARKING_EXAM_SENT_TO_PRINT || $exam->status == EMARKING_EXAM_PRINTED) {
+                /*$urlprint = new moodle_url('/mod/emarking/print/printexam.php', array(
+                    'exam' => $exam->id
+                ));
+                $actions .= html_writer::div(
+                    $OUTPUT->action_icon($urlprint, new pix_icon("t/print", get_string("printexam", "mod_emarking")))
+                );*/
+                $actions .= html_writer::div(
+                    $OUTPUT->pix_icon(
+                        "t/print",
+                        $exam->id,
+                        null,
+                        array(
+                            "id" => $exam->id,
+                            "examid" => $exam->id,
+                            "class" => "printdirectly"
+                        )
+                    )
+                );
+            }
+            else{
+                $actions .= html_writer::div(
+                    $OUTPUT->pix_icon('t/locktime', get_string('printnotavailable', 'mod_emarking'))
+                );
+            }
         }
         // Download print form.
         $urldownloadform = new moodle_url(
@@ -482,6 +502,7 @@ if ($totalexams > 0) {
 }
 
 $downloadurl = new moodle_url('/mod/emarking/print/download.php');
+$printurl = new moodle_url('/mod/emarking/print/printdirectly.php');
 if ($CFG->emarking_usesms) {
     $message = get_string('smsinstructions', 'mod_emarking', $USER);
 } else {
@@ -539,7 +560,9 @@ if ($CFG->emarking_usesms) {
         cancel: "<?php echo get_string("cancel", "mod_emarking") ?>",
         resendcode: "<?php echo get_string("resendcode", "mod_emarking") ?>",
         timeout: "<?php echo get_string("smsservertimeout", "mod_emarking") ?>",
-        servererror: "<?php echo get_string("smsservererror", "mod_emarking") ?>"
+        servererror: "<?php echo get_string("smsservererror", "mod_emarking") ?>",
+        printexam: "<?php echo get_string("printexam", "mod_emarking") ?>",
+        print: "<?php echo get_string("print", "mod_emarking") ?>",
     };
     var wwwroot = "<?php echo $CFG->wwwroot ?>";
     var downloadurl = "<?php echo $downloadurl ?>";
@@ -547,8 +570,10 @@ if ($CFG->emarking_usesms) {
     var sessionkey = "<?php echo sesskey() ?>";
     var multipdfs = "0";
     var incourse = "0";
+    var printurl = "<?php echo $printurl ?>";
 </script>
 <div id="loadingPanel"></div>
+<div id="printLoadingPanel"></div>
 <!-- The panel DIV goes at the end to make sure it is loaded before javascript starts -->
 <div id="panelContent">
     <div class="yui3-widget-bd">
@@ -559,6 +584,18 @@ if ($CFG->emarking_usesms) {
                         <option value="0"><?php echo get_string("singlepdf", "mod_emarking") ?></option>
                         <option value="1"><?php echo get_string("multiplepdfs", "mod_emarking") ?></option>
                     </select>
+                </p>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<div id="printPanelContent">
+    <div class="yui3-widget-bd">
+        <form>
+            <fieldset>
+                <p>
+                    <label for="id"><?php echo $message ?></label><br /> <input type="text" name="security-code" id="security-code" placeholder="">
                 </p>
             </fieldset>
         </form>
