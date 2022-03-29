@@ -55,6 +55,11 @@ if ($statusicon < 1 || $statusicon > 2) {
 
 $categories = core_course_category::make_categories_list('mod/emarking:printordersview');
 
+if(empty($categories))
+{
+    print_error(get_string('notallowed', 'mod_emarking'));
+}
+
 // if we don't have a category check the available categories and select the highest one
 if ($categories_id == [0]) {
     // If no category given we get all categories the user has access to
@@ -124,13 +129,15 @@ foreach ($categories_id as $index => $categoryid) {
     if (!$category = $DB->get_record('course_categories', array('id' => $categoryid))) {
         print_error(get_string('invalidcategoryid', 'mod_emarking'));
     }
+
     // We are in the category context.
     $context = context_coursecat::instance($categoryid);
+
     // And have printordersview capability.
     if (!has_capability('mod/emarking:printordersview', $context)) {
-        // TODO: Log invalid access to printorders.
-        print_error('Not allowed!');
+        print_error(get_string('notallowed', 'mod_emarking'));
     }
+
     $url = new moodle_url('/mod/emarking/print/printorders.php', array(
         'category' => $categoryid
     ));
