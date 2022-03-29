@@ -55,7 +55,7 @@ require_login();
 $pagenumber = optional_param('pag', 1, PARAM_INT);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('statisticstotals', 'mod_emarking'));
-echo $OUTPUT->tabtree(emarking_printoders_tabs($category), "print");
+echo $OUTPUT->tabtree(emarking_printoders_tabs($categoryid), "print");
 $filter = "WHERE (cc.path like '%/$categoryid/%' OR cc.path like '%/$categoryid')";
 $sqlstats = "
     SELECT

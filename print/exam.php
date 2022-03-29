@@ -83,7 +83,14 @@ if (! $exam = $DB->get_record ( "emarking_exams", $params )) {
 				"return" => "1"
 		) ) );
 		die ();
-	} else {
+	} 
+	#if the students uploads the file himself
+	else if($emarking->uploadtype == EMARKING_UPLOAD_FILE) {
+		#dont do anything, the error handles itself and the correct message is displayed
+	}
+	#undefined behaviour, throw error
+	else 
+	{
 		print_error('Invalid exam id');
 	}
 }
@@ -102,7 +109,7 @@ echo $OUTPUT->heading ( $emarking->name );
 if($CFG->emarking_pagelayouttype == EMARKING_PAGES_LAYOUT_STANDARD){
 	echo $OUTPUT->tabtree(emarking_tabs($context, $cm, $emarking), 'myexams');
 }
-if(!$exam && $emarking->uploadtype != EMARKING_UPLOAD_QR) {
+if(!$exam && $emarking->uploadtype == EMARKING_UPLOAD_FILE) {
 	echo $OUTPUT->notification('Files will be uploaded by students');
 	echo $OUTPUT->footer();
 	die();
